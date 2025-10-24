@@ -1,0 +1,12 @@
+# Force Git to use LF everywhere
+* text=auto eol=lf
+
+# Spécifie des formats particuliers si besoin :
+*.sh text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
