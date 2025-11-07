@@ -4,7 +4,8 @@
   "main": "index.html",
   "scripts": {
     "build": "tsc",
-    "start": "npx http-server ./dist"
+    "start": "npx http-server ./dist",
+    "serve": "live-server --port=8080 ./"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
