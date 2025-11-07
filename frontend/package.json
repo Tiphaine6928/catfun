@@ -1,16 +1,13 @@
 {
-  "name": "frontend",
+  "name": "catfun-frontend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "npx http-server ./dist"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "vite": "^7.1.12"
+    "http-server": "^14.1.1",
+    "typescript": "^5.9.3"
   }
 }
