@@ -15,7 +15,7 @@ services:
     build: ./frontend
     container_name: catfun-frontend
     ports:
-      - "8081:8080"
+      - "8081:80"
     volumes:
       - ./frontend:/app
     stdin_open: true
@@ -39,7 +39,7 @@ services:
     image: nginx:latest
     container_name: catfun-nginx
     ports:
-      - "8080:80"
+      - "8082:80"
     volumes:
       - ./backend:/var/www/html
       - ./nginx/conf:/etc/nginx/conf.d
