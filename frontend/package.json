@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.html",
   "scripts": {
+    "dev": "tsc --watch",
     "build": "tsc",
     "start": "npx http-server ./dist",
     "serve": "live-server --port=8080 ./"
