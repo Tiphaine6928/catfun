@@ -70,8 +70,8 @@ php bin/console doctrine:migration:migrate
 symfony server:start
 
 ### Lancer le frontend
-cd frontend
-npm install
+cd frontend <br>
+npm install <br>
 npm run dev
 
 ### Etat du projet
