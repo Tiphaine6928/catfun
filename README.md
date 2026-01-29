@@ -56,28 +56,26 @@ leurs scores et de comparer leurs performances.
 
 ### Backend
 ---bash
-cd backend
+cd backend <br>
 composer install
 
 ### Configurer la base de données dans le fichier .env 
 DATABASE_URL="mysql://admin:root@127.0.0.1:3306/catfun?serverVersion=8.0"
 
 ### Créer la base de données
-php bin/console doctrine:database:create
+php bin/console doctrine:database:create <br>
 php bin/console doctrine:migration:migrate
 
 ### Lancer le serveur
 symfony server:start
 
 ### Lancer le frontend
-cd frontend <br>
-npm install <br>
 npm run dev
 
 ### Etat du projet
-Projet en cours de développement
+Projet en cours de développement <br>
 Les fonctionnalités sont implémentés progressivement selon une roadmap
 
 ### Auteur
-Projet développé par Tiphaine
+Projet développé par Tiphaine <br>
 Etudiante en développement web - Ada Tech School
