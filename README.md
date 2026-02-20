@@ -48,11 +48,7 @@ leurs scores et de comparer leurs performances.
 ## Installation
 
 ### Prérequis
-- PHP
-- Composer
-- MySQL
-- Symfony CLI
-- Node.js / npm
+- Docker et Docker compose
 
 ### Backend
 ---bash
