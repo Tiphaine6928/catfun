@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.html",
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "tsc",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "start": "npx http-server ./dist",
     "serve": "live-server --port=8080 ./"
   },
