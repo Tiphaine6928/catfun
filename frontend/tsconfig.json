@@ -1,22 +1,18 @@
 {
   "compilerOptions": {
-    // --- Structure du projet ---
-    "target": "ES2019",               
-    "module": "ES6",
-    "rootDir": "./src",
-    "outDir": "./dist",
-
-    // --- Environnement navigateur ---
-    "lib": ["DOM", "ES2019"],         
-    "moduleResolution": "node",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
-
-    // --- Génération du code ---
-    "sourceMap": true,                
+    "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "types": ["vite/client"]
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue"
+  ]
 }
 
