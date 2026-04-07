@@ -1,44 +1,63 @@
 <template>
-  <form @submit.prevent="register">
+  <form @submit.prevent="handleSubmit">
     <div>
-      <label>Email</label>
-      <input v-model="email" type="email" required />
+      <label for="pseudo">Pseudo</label>
+      <input
+        type="text"
+        id="pseudo"
+        v-model="form.pseudo"
+        placeholder="Ton pseudo"
+        required
+      />
     </div>
+
     <div>
-      <label>Mot de passe</label>
-      <input v-model="password" type="password" required />
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        v-model="form.email"
+        required
+      />
     </div>
-    <button type="submit">S'inscrire</button>
+
+    <div>
+      <label for="password">Mot de passe</label>
+      <input
+        type="password"
+        id="password"
+        v-model="form.password"
+        required
+      />
+    </div>
+
+    <button type="submit">S’inscrire</button>
     <p v-if="error" style="color:red">{{ error }}</p>
   </form>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-import api from '../services/api'
+import { ref } from 'vue';
+import api from '../api';
 
-export default defineComponent({
-  name: 'FormInscription',
+export default {
   setup() {
-    const email = ref('')
-    const password = ref('')
-    const error = ref('')
+    const form = ref({
+      pseudo: '', // ⚠️ assure-toi qu’il est là !
+      email: '',
+      password: ''
+    });
 
-    const register = async () => {
+    const handleSubmit = async () => {
       try {
-        await api.post('/register', {
-          email: email.value,
-          password: password.value
-        })
-        error.value = ''
-        alert('Inscription réussie ✅')
-        window.location.href = '/connexion.html'
-      } catch (err: any) {
-        error.value = err.response?.data?.message || 'Erreur inscription ❌'
+        const res = await api.post('/api/register', form.value);
+        console.log(res.data);
+      } catch (err) {
+        console.error(err);
       }
-    }
+    };
 
-    return { email, password, error, register }
+    return { form, handleSubmit };
   }
-})
+};
 </script>

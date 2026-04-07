@@ -1,11 +1,7 @@
 <template>
-  <div>
-    <h2>Profil</h2>
-    <p v-if="!user">Chargement du profil...</p>
-    <div v-else>
-      <p><strong>Email:</strong> {{ user.email }}</p>
-      <button @click="logout">Se déconnecter</button>
-    </div>
+  <div v-if="user">
+    <h2>Bienvenue, {{ user.pseudo }}</h2>
+    <p>Email : {{ user.email }}</p>
   </div>
 </template>
 
