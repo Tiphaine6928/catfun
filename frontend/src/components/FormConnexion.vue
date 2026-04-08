@@ -1,44 +1,93 @@
 <template>
-  <form @submit.prevent="login">
-    <div>
-      <label>Email</label>
-      <input v-model="email" type="email" required />
-    </div>
-    <div>
-      <label>Mot de passe</label>
-      <input v-model="password" type="password" required />
-    </div>
-    <button type="submit">Se connecter</button>
-    <p v-if="error" style="color:red">{{ error }}</p>
-  </form>
+  <div class="form-container">
+    <h1>Connexion</h1>
+
+    <form @submit.prevent="handleSubmit">
+      <!-- Email -->
+      <div>
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          v-model="form.email"
+          placeholder="Ton email"
+          required
+        />
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password">Mot de passe</label>
+        <input
+          type="password"
+          id="password"
+          v-model="form.password"
+          placeholder="Ton mot de passe"
+          required
+        />
+      </div>
+
+      <!-- Affichage erreur -->
+      <p v-if="error" class="text-red-500">{{ error }}</p>
+
+      <!-- Bouton -->
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-import api from '../services/api'
+import { ref } from 'vue';
+import api from '../services/api'; // ⚠️ chemin vers ton api.ts
 
-export default defineComponent({
-  name: 'FormConnexion',
+export default {
   setup() {
-    const email = ref('')
-    const password = ref('')
-    const error = ref('')
+    const form = ref({
+      email: '',
+      password: ''
+    });
 
-    const login = async () => {
+    const error = ref('');
+
+    const handleSubmit = async () => {
+      console.log('CLICK 🔥 login');
+
       try {
-        await api.post('/login', {
-          email: email.value,
-          password: password.value
-        })
-        error.value = ''
-        alert('Connexion réussie ✅')
-        window.location.href = '/profil.html'
-      } catch (err: any) {
-        error.value = 'Email ou mot de passe incorrect ❌'
-      }
-    }
+        const res = await api.post('/api/login', form.value);
+        console.log(res.data);
 
-    return { email, password, error, login }
+        alert('Connexion réussie ✅');
+        error.value = '';
+
+        // Redirection vers la page profil
+        window.location.href = '/profil.html';
+      } catch (err: any) {
+        console.error(err);
+        error.value = err.response?.data?.error || 'Identifiants invalides';
+      }
+    };
+
+    return { form, handleSubmit, error };
   }
-})
+};
 </script>
+
+<style scoped>
+.form-container {
+  max-width: 400px;
+  margin: auto;
+  padding: 1rem;
+}
+input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.text-red-500 {
+  color: red;
+}
+</style>
