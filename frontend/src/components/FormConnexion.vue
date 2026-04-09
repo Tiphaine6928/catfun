@@ -31,7 +31,13 @@
       <p v-if="error" class="text-red-500">{{ error }}</p>
 
       <!-- Bouton -->
-      <button type="submit">Se connecter</button>
+      <<div class="form-btn-container">
+        <button type="submit" class="btn-primary">Se connecter</button>
+      </div>
+      <p style="margin-top: 20px;">
+        Pas encore inscrit ?
+        <a href="/inscription.html">Inscrivez-vous</a>
+      </p>
     </form>
   </div>
 </template>

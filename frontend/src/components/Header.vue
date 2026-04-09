@@ -1,26 +1,32 @@
 <template>
   <header>
+    <div class="logo">CatFun</div>
+
     <nav>
-      <a href="/accueil.html">Accueil</a> |
-      <a href="/inscription.html">Inscription</a> |
-      <a href="/connexion.html">Connexion</a> |
-      <a href="/profil.html">Profil</a>
+      <a href="/accueil.html">Accueil</a>
+      <a href="#">Pendu</a>
+      <a href="#">Mémoire</a>
     </nav>
+
+    <button class="btn" @click="goAuth">
+      Inscription / Connexion
+    </button>
   </header>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'Header'
-})
+export default {
+  methods: {
+    goAuth() {
+      window.location.href = '/connexion.html';
+    }
+  }
+};
 </script>
 
 <style scoped>
-nav a {
-  margin-right: 15px;
-  text-decoration: none;
-  color: #333;
+.logo {
+  font-weight: bold;
+  font-size: 20px;
 }
 </style>
