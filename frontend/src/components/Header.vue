@@ -4,8 +4,8 @@
 
     <nav>
       <a href="/accueil.html">Accueil</a>
-      <a href="#">Pendu</a>
-      <a href="#">Mémoire</a>
+      <a href="/pendu.html">Pendu</a>
+      <a href="/memoire.html">Mémoire</a>
     </nav>
 
     <button class="btn" @click="goAuth">
@@ -29,4 +29,12 @@ export default {
   font-weight: bold;
   font-size: 20px;
 }
+
+.game-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
 </style>
