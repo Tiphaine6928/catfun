@@ -31,7 +31,7 @@
       <p v-if="error" class="text-red-500">{{ error }}</p>
 
       <!-- Bouton -->
-      <<div class="form-btn-container">
+      <div class="form-btn-container">
         <button type="submit" class="btn-primary">Se connecter</button>
       </div>
       <p style="margin-top: 20px;">
@@ -56,7 +56,6 @@ export default {
     const error = ref('');
 
     const handleSubmit = async () => {
-      console.log('CLICK 🔥 login');
 
       try {
         const res = await api.post('/api/login', form.value);
