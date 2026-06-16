@@ -29,12 +29,4 @@ export default {
   font-weight: bold;
   font-size: 20px;
 }
-
-.game-card img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-
 </style>
