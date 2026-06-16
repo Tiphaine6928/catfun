@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "npx http-server ./dist",
-    "serve": "live-server --port=8080 ./"
+    "serve": "live-server --port=8080 ./",
+    "test": "vitest"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
