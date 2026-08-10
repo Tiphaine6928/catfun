@@ -76,6 +76,14 @@ public function me(): JsonResponse
         'email' => $user->getEmail()
     ]);
 }
+
+    #[Route('/api', name: 'api_home', methods: ['GET'])]
+    public function index(): JsonResponse
+    {
+        return $this->json([
+            'status' => 'API running'
+        ]);
+    }
 }
 
 

@@ -24,7 +24,6 @@ final class ApiControllerTest extends WebTestCase
 
         $data = json_decode($client->getResponse()->getContent(), true);
         $this->assertArrayHasKey('token', $data);
-        fwrite(STDERR, static::class . " TOKEN: " . $data['token'] . "\n");
 
         $client->setServerParameter(
             'HTTP_Authorization',
