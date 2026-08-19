@@ -1,41 +1,71 @@
 <template>
-  <div v-if="user">
-    <h2>Bienvenue, {{ user.pseudo }}</h2>
-    <p>Email : {{ user.email }}</p>
-  </div>
+  <main class="profil-page">
+
+    <h1>Mon profil</h1>
+
+    <div v-if="loading">
+      Chargement...
+    </div>
+
+    <div v-else-if="error" class="error">
+      {{ error }}
+    </div>
+
+    <div v-else class="profil-card">
+
+      <div class="profil-info">
+        <label>Pseudo</label>
+        <p>{{ pseudo }}</p>
+      </div>
+
+      <div class="profil-info">
+        <label>Email</label>
+        <p>{{ email }}</p>
+      </div>
+
+    </div>
+
+  </main>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
-import api from '../services/api'
+import api from '../services/api';
 
-interface User {
-  email: string
-}
+export default {
+  data() {
+    return {
+      pseudo: '',
+      email: '',
+      loading: true,
+      error: ''
+    };
+  },
 
-export default defineComponent({
-  name: 'Profil',
-  setup() {
-    const user = ref<User | null>(null)
+  async mounted() {
+    try {
+      const response = await api.get('/me');
 
-    const fetchUser = async () => {
-      try {
-        const res = await api.get('/api/me')
-        user.value = res.data
-      } catch {
-        alert('Vous devez vous connecter !')
-        window.location.href = '/connexion.html'
+      console.log('Réponse /api/me :', response.data);
+
+      this.pseudo = response.data.user.pseudo;
+      this.email = response.data.user.email;
+
+      console.log('Pseudo :', this.pseudo);
+      console.log('Email :', this.email);
+
+    } catch (error: any) {
+
+      console.error('Erreur récupération profil :', error);
+
+      if (error.response?.status === 401) {
+        this.error = 'Vous devez être connecté pour accéder à votre profil.';
+      } else {
+        this.error = 'Impossible de récupérer votre profil.';
       }
+
+    } finally {
+      this.loading = false;
     }
-
-    const logout = async () => {
-      await api.post('/logout')
-      window.location.href = '/accueil.html'
-    }
-
-    onMounted(fetchUser)
-
-    return { user, logout }
   }
-})
+};
 </script>

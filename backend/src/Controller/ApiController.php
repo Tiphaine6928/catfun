@@ -21,61 +21,59 @@ class ApiController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (!$data || !isset($data['email']) || !isset($data['password'])) {
-            return new JsonResponse(['error' => 'Données invalides'], 400);
+        if (
+            !$data ||
+            !isset($data['pseudo']) ||
+            !isset($data['email']) ||
+            !isset($data['password'])
+        ) {
+            return new JsonResponse([
+                'error' => 'Données invalides'
+            ], 400);
         }
 
         $user = new User();
+
         $user->setPseudo($data['pseudo']);
         $user->setEmail($data['email']);
-        $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
+
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $data['password']
+        );
+
         $user->setPassword($hashedPassword);
 
         $em->persist($user);
         $em->flush();
 
-        return new JsonResponse(['message' => 'Utilisateur créé ✅'], 201);
+        return new JsonResponse([
+            'message' => 'Utilisateur créé ✅'
+        ], 201);
     }
 
-    #[Route('/api/login', methods: ['POST'])]
-public function login(
-    Request $request,
-    EntityManagerInterface $em,
-    UserPasswordHasherInterface $passwordHasher
-): JsonResponse {
 
-    $data = json_decode($request->getContent(), true);
+    #[Route('/api/me', methods: ['GET'])]
+    public function me(): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = $this->getUser();
 
-    $user = $em->getRepository(User::class)->findOneBy([
-        'email' => $data['email']
-    ]);
+        if (!$user) {
+            return new JsonResponse([
+                'error' => 'Non connecté'
+            ], 401);
+        }
 
-    if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
-        return new JsonResponse(['error' => 'Identifiants invalides'], 401);
+        return new JsonResponse([
+            'user' => [
+                'id' => $user->getId(),
+                'pseudo' => $user->getPseudo(),
+                'email' => $user->getEmail()
+            ]
+        ]);
     }
 
-    // ⚠️ version simple (pas JWT)
-    return new JsonResponse([
-        'message' => 'Connexion réussie ✅',
-        'email' => $user->getEmail()
-    ]);
-}
-
-#[Route('/api/me', methods: ['GET'])]
-public function me(): JsonResponse
-{
-    $user = $this->getUser();
-
-    if (!$user) {
-        return new JsonResponse(['error' => 'Non connecté'], 401);
-    }
-
-    /** @var User $user */
-
-    return new JsonResponse([
-        'email' => $user->getEmail()
-    ]);
-}
 
     #[Route('/api', name: 'api_home', methods: ['GET'])]
     public function index(): JsonResponse

@@ -1,98 +1,100 @@
 <template>
   <div class="form-container">
+
     <h1>Connexion</h1>
 
     <form @submit.prevent="handleSubmit">
-      <!-- Email -->
-      <div>
+
+      <div class="form-group">
         <label for="email">Email</label>
+
         <input
-          type="email"
           id="email"
-          v-model="form.email"
-          placeholder="Ton email"
+          v-model="email"
+          type="email"
           required
         />
       </div>
 
-      <!-- Password -->
-      <div>
+      <div class="form-group">
         <label for="password">Mot de passe</label>
+
         <input
-          type="password"
           id="password"
-          v-model="form.password"
-          placeholder="Ton mot de passe"
+          v-model="password"
+          type="password"
           required
         />
       </div>
 
-      <!-- Affichage erreur -->
-      <p v-if="error" class="text-red-500">{{ error }}</p>
-
-      <!-- Bouton -->
-      <div class="form-btn-container">
-        <button type="submit" class="btn-primary">Se connecter</button>
-      </div>
-      <p style="margin-top: 20px;">
-        Pas encore inscrit ?
-        <a href="/inscription.html">Inscrivez-vous</a>
+      <p v-if="error" class="error">
+        {{ error }}
       </p>
+
+      <button type="submit">
+        Se connecter
+      </button>
+
     </form>
+
+    <p class="register-link">
+      Pas encore inscrit ?
+      <a href="/inscription.html">Inscrivez-vous</a>
+    </p>
+
   </div>
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
-import api from '../services/api'; // ⚠️ chemin vers ton api.ts
+import api from '../services/api';
 
 export default {
-  setup() {
-    const form = ref({
+  data() {
+    return {
       email: '',
-      password: ''
-    });
+      password: '',
+      error: ''
+    };
+  },
 
-    const error = ref('');
-
-    const handleSubmit = async () => {
+  methods: {
+    async handleSubmit() {
+      this.error = '';
 
       try {
-        const res = await api.post('/api/login', form.value);
-        console.log(res.data);
+        const response = await api.post('/login_check', {
+          email: this.email,
+          password: this.password
+        });
 
-        alert('Connexion réussie ✅');
-        error.value = '';
+        console.log('Connexion réussie :', response.data);
 
-        // Redirection vers la page profil
+        // Récupération du JWT
+        const token = response.data.token;
+
+        if (!token) {
+          this.error = 'Token de connexion introuvable.';
+          return;
+        }
+
+        // Stockage du JWT
+        localStorage.setItem('token', token);
+
+        console.log('JWT enregistré');
+
+        // Redirection vers le profil
         window.location.href = '/profil.html';
-      } catch (err: any) {
-        console.error(err);
-        error.value = err.response?.data?.error || 'Identifiants invalides';
-      }
-    };
 
-    return { form, handleSubmit, error };
+      } catch (error: any) {
+        console.error('Erreur connexion :', error);
+
+        if (error.response?.status === 401) {
+          this.error = 'Identifiants invalides';
+        } else {
+          this.error = 'Une erreur est survenue lors de la connexion.';
+        }
+      }
+    }
   }
 };
 </script>
-
-<style scoped>
-.form-container {
-  max-width: 400px;
-  margin: auto;
-  padding: 1rem;
-}
-input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-button {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-.text-red-500 {
-  color: red;
-}
-</style>

@@ -6,6 +6,7 @@
       <a href="/accueil.html">Accueil</a>
       <a href="/pendu.html">Pendu</a>
       <a href="/memoire.html">Mémoire</a>
+      <a href="/profil.html">Profil</a>
     </nav>
 
     <button class="btn" @click="goAuth">

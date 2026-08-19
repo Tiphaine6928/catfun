@@ -3,8 +3,9 @@
     <h1>Inscription</h1>
 
     <form @submit.prevent="handleSubmit">
+
       <!-- Pseudo -->
-      <div>
+      <div class="form-group">
         <label for="pseudo">Pseudo</label>
         <input
           type="text"
@@ -16,7 +17,7 @@
       </div>
 
       <!-- Email -->
-      <div>
+      <div class="form-group">
         <label for="email">Email</label>
         <input
           type="email"
@@ -28,7 +29,7 @@
       </div>
 
       <!-- Password -->
-      <div>
+      <div class="form-group">
         <label for="password">Mot de passe</label>
         <input
           type="password"
@@ -40,23 +41,29 @@
       </div>
 
       <!-- Affichage erreur -->
-      <p v-if="error" class="text-red-500">{{ error }}</p>
+      <p v-if="error" class="error">
+        {{ error }}
+      </p>
 
       <!-- Bouton -->
       <div class="form-btn-container">
-        <button type="submit" class="btn-primary">S'inscrire</button>
+        <button type="submit" class="btn-primary">
+          S'inscrire
+        </button>
       </div>
-      <p style="margin-top: 20px;">
+
+      <p class="register-link">
         Déjà inscrit ?
         <a href="/connexion.html">Connectez-vous</a>
       </p>
+
     </form>
   </div>
 </template>
 
 <script lang="ts">
 import { ref } from 'vue';
-import api from '../services/api'; // ⚠️ chemin vers ton api.ts
+import api from '../services/api'; // ⚠️ chemin vers api.ts
 
 export default {
   setup() {
@@ -88,23 +95,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.form-container {
-  max-width: 400px;
-  margin: auto;
-  padding: 1rem;
-}
-input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-button {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-.text-red-500 {
-  color: red;
-}
-</style>

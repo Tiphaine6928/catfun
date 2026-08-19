@@ -1,8 +1,18 @@
-import axios from 'axios'
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000', // Symfony
-  withCredentials: true // 🔥 important pour les sessions Symfony
-})
+  baseURL: 'http://localhost:8000/api',
+});
 
-export default api
+// Ajoute automatiquement le JWT à chaque requête
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+export default api;
