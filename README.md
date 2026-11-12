@@ -48,26 +48,47 @@ leurs scores et de comparer leurs performances.
 ## Installation
 
 ### Prérequis
-- Docker et Docker compose
+- Docker et Docker Compose
 
-### Backend
----bash
-cd backend <br>
+### Lancer le projet avec Docker
+```bash
+docker compose up --build
+```
+
+Au démarrage, le conteneur backend installe les dépendances PHP (si `vendor/` est absent)
+et génère les clés JWT (si elles n'existent pas encore).
+
+Créer ensuite les tables :
+```bash
+docker compose exec backend php bin/console doctrine:migrations:migrate
+```
+
+- Backend (Symfony via nginx) : http://localhost:8082
+- Frontend : http://localhost:8081
+
+### Lancer le backend sans Docker
+```bash
+cd backend
 composer install
-
-### Configurer la base de données dans le fichier .env 
-DATABASE_URL="mysql://admin:root@127.0.0.1:3306/catfun?serverVersion=8.0"
-
-### Créer la base de données
-php bin/console doctrine:database:create <br>
-php bin/console doctrine:migration:migrate
-
-### Lancer le serveur
+php bin/console lexik:jwt:generate-keypair --skip-if-exists
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
 symfony server:start
+```
 
-### Lancer le frontend
-npm install <br>
-npm run dev
+La base de données se configure dans `backend/.env.local` :
+`DATABASE_URL="mysql://admin:root@127.0.0.1:3306/catfun?serverVersion=8.0"`
+
+### Lancer le frontend sans Docker
+```bash
+cd frontend
+npm install
+npm start
+```
+
+### API d'authentification
+- `POST /api/login` avec `{"email": "...", "password": "..."}` → renvoie `{"token": "..."}`
+- `GET /api/me` avec l'en-tête `Authorization: Bearer <token>`
 
 ### Etat du projet
 Projet en cours de développement <br>

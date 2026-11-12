@@ -2,13 +2,13 @@
   "compilerOptions": {
     // --- Structure du projet ---
     "target": "ES2019",               
-    "module": "ES6",
+    "module": "ES2020",
     "rootDir": "./src",
     "outDir": "./dist",
 
     // --- Environnement navigateur ---
     "lib": ["DOM", "ES2019"],         
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
 
     // --- Génération du code ---

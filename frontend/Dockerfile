@@ -13,8 +13,6 @@ COPY . .
 # Compiler le TypeScript dans ./dist
 RUN npm run build
 
-# Copier le bon index.html (celui à la racine) dans dist/
-RUN cp index.html dist/
 
 # Étape 2 : serveur de production
 FROM node:20
@@ -32,14 +30,3 @@ EXPOSE 8080
 
 # Lancer le serveur sur le dossier dist
 CMD ["http-server", "dist", "-p", "8080"]
-
-
-
-
-
-
-
-
-
-
-

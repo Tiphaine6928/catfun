@@ -1,3 +1,8 @@
 controllers:
     resource: ../src/Controller/
     type: attribute
+
+# Route interceptée par le firewall "login" (json_login + LexikJWT) : aucun contrôleur nécessaire
+api_login:
+    path: /api/login
+    methods: [POST]

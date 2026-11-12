@@ -1,6 +1,10 @@
-const button = document.getElementById('meow') as HTMLButtonElement;
-const output = document.getElementById('output') as HTMLParagraphElement;
+const button = document.getElementById('meow');
+const output = document.getElementById('output');
 
-button.addEventListener('click', () => {
-  output.textContent = 'Miaouuu 🐾 Tu viens de cliquer !';
-});
+if (button instanceof HTMLButtonElement && output) {
+  button.addEventListener('click', () => {
+    output.textContent = 'Miaouuu 🐾 Tu viens de cliquer !';
+  });
+} else {
+  console.error('CatFun : éléments #meow ou #output introuvables dans la page.');
+}
