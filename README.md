@@ -90,6 +90,10 @@ npm start
 - `POST /api/login` avec `{"email": "...", "password": "..."}` → renvoie `{"token": "..."}`
 - `GET /api/me` avec l'en-tête `Authorization: Bearer <token>`
 
+Le CORS (nelmio/cors-bundle) autorise par défaut les appels vers `/api/` depuis `localhost`
+et `127.0.0.1` sur n'importe quel port. Pour une autre origine, surcharger `CORS_ALLOW_ORIGIN`
+dans `backend/.env.local` (expression régulière).
+
 ### Etat du projet
 Projet en cours de développement <br>
 Les fonctionnalités sont implémentés progressivement selon une roadmap

@@ -1,0 +1,13 @@
+nelmio_cors:
+    # Attention : les "defaults" s'appliquent à TOUTES les URL, même hors "paths".
+    # La configuration est donc placée uniquement sous le chemin de l'API.
+    paths:
+        # Seule l'API est appelée par le frontend
+        '^/api/':
+            origin_regex: true
+            # Origines autorisées : définies dans .env (CORS_ALLOW_ORIGIN), à restreindre en production
+            allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+            allow_methods: ['GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE']
+            allow_headers: ['Content-Type', 'Authorization']
+            expose_headers: ['Link']
+            max_age: 3600
