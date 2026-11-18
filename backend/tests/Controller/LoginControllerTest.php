@@ -46,7 +46,8 @@ final class LoginControllerTest extends WebTestCase
         self::assertSelectorTextContains('h1', 'Connexion');
         self::assertSelectorTextContains('label[for="inputPassword"]', 'Mot de passe');
         self::assertSelectorTextContains('.checkbox label', 'Se souvenir de moi');
-        self::assertSelectorExists('a[href="/register"]');
+        // L'inscription se fait sur le frontend
+        self::assertSelectorExists('a[href="http://localhost:8081/#/register"]');
         self::assertSelectorExists('form[method="post"] input[type="email"][name="email"][required]');
         self::assertSelectorExists('input[type="password"][name="password"][required]');
         self::assertSelectorExists('input[type="checkbox"][name="_remember_me"]');
@@ -144,12 +145,12 @@ final class LoginControllerTest extends WebTestCase
         // Page mémorisée par Symfony quand un visiteur tente d'ouvrir une page protégée
         $this->client->request('GET', '/login');
         $session = $this->client->getRequest()->getSession();
-        $session->set('_security.main.target_path', 'http://localhost/register');
+        $session->set('_security.main.target_path', 'http://localhost/?page=voulue');
         $session->save();
 
         $this->submitLogin(self::EMAIL, self::PASSWORD);
 
-        self::assertResponseRedirects('http://localhost/register');
+        self::assertResponseRedirects('http://localhost/?page=voulue');
     }
 
     public function testRememberMeSetsALongLivedCookieOnlyWhenChecked(): void

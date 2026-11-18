@@ -90,6 +90,10 @@ Les secrets (`APP_SECRET`, `JWT_PASSPHRASE`) sont générés par `bin/init-env.s
 La base de données se configure aussi dans `backend/.env.local` :
 `DATABASE_URL="mysql://admin:root@127.0.0.1:3306/catfun?serverVersion=8.0"`
 
+Si le frontend tourne avec Vite (port 5173) plutôt qu'avec Docker, indique aussi son adresse
+dans `backend/.env.local`, pour les liens « Créer un compte » des pages Symfony :
+`FRONTEND_URL=http://localhost:5173`
+
 ### Lancer le frontend sans Docker
 ```bash
 cd frontend

@@ -31,6 +31,33 @@ final class RegistrationControllerTest extends ApiTestCase
         self::assertArrayHasKey('token', $login);
     }
 
+    /**
+     * @dataProvider pseudoMessageProvider
+     */
+    public function testRegisterExplainsWhatIsWrongWithThePseudo(string $pseudo, string $message): void
+    {
+        $data = $this->requestJson('POST', '/api/register', ['pseudo' => $pseudo] + self::VALID);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertStringContainsString($message, $data['errors']['pseudo']);
+    }
+
+    public static function pseudoMessageProvider(): iterable
+    {
+        yield 'vide' => ['', 'Merci de choisir un pseudo'];
+        yield 'trop court' => ['ab', 'au moins 3 caractères'];
+        yield 'trop long' => [str_repeat('a', 31), 'au plus 30 caractères'];
+        yield 'caractère interdit' => ['Minou 69', 'ne peut contenir que'];
+    }
+
+    public function testRegisterAcceptsAccentsDigitsDashAndUnderscoreInThePseudo(): void
+    {
+        $data = $this->requestJson('POST', '/api/register', ['pseudo' => 'Félix-le_Chat69'] + self::VALID);
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame('Félix-le_Chat69', $data['pseudo']);
+    }
+
     public function testRegisterRejectsATakenEmailOrPseudoWhateverTheCase(): void
     {
         $this->createUser('felix@cat.fun', 'Félix');
@@ -64,7 +91,11 @@ final class RegistrationControllerTest extends ApiTestCase
         yield 'JSON invalide' => ['{pas du json', 400, []];
         yield 'objet vide' => [[], 422, ['email', 'pseudo', 'password']];
         yield 'email invalide' => [['email' => 'toto'] + self::VALID, 422, ['email']];
-        yield 'pseudo invalide' => [['pseudo' => 'a b'] + self::VALID, 422, ['pseudo']];
+        yield 'pseudo avec une espace' => [['pseudo' => 'a b c'] + self::VALID, 422, ['pseudo']];
+        yield 'pseudo vide' => [['pseudo' => '   '] + self::VALID, 422, ['pseudo']];
+        yield 'pseudo trop court' => [['pseudo' => 'ab'] + self::VALID, 422, ['pseudo']];
+        yield 'pseudo trop long' => [['pseudo' => str_repeat('a', 31)] + self::VALID, 422, ['pseudo']];
+        yield 'pseudo avec caractères spéciaux' => [['pseudo' => '<script>'] + self::VALID, 422, ['pseudo']];
         yield 'mot de passe trop court' => [['password' => '12345'] + self::VALID, 422, ['password']];
         yield 'mot de passe vide' => [['password' => ''] + self::VALID, 422, ['password']];
         yield 'mot de passe pas une chaîne' => [['password' => 123456] + self::VALID, 422, ['password']];
