@@ -5,9 +5,12 @@ services:
     volumes:
       - ./backend:/var/www/html
     environment:
+      # "db" est le nom du service MySQL ci-dessous, sur le réseau interne de Docker
       DATABASE_URL: "mysql://admin:root@db:3306/catfun?serverVersion=8.0"
     depends_on:
-      - db
+      db:
+        # Attend que MySQL accepte vraiment les connexions (voir healthcheck)
+        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -25,10 +28,18 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: root
     ports:
-      # Accessible uniquement depuis ta machine, pas depuis le réseau
-      - "127.0.0.1:3306:3306"
+      # Port 3307 sur ta machine (3306 est souvent déjà pris par un MySQL installé localement).
+      # Accessible uniquement depuis ta machine, pas depuis le réseau.
+      - "127.0.0.1:3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      # Ping en TCP : pendant sa première initialisation, MySQL n'écoute pas encore le réseau
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
   nginx:
     image: nginx:latest

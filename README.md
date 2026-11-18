@@ -66,6 +66,13 @@ docker compose exec backend php bin/console doctrine:migrations:migrate
 
 - Backend (Symfony via nginx) : http://localhost:8082
 - Frontend : http://localhost:8081
+- Base MySQL (pour un outil comme DBeaver ou MySQL Workbench) : `127.0.0.1`, port **3307**,
+  utilisateur `admin`, mot de passe `root`. Le port 3307 évite le conflit avec un MySQL déjà
+  installé sur ta machine (qui utilise 3306).
+
+Au premier démarrage, MySQL met jusqu'à une minute à s'initialiser : le backend attend qu'il soit prêt.
+Si un conteneur reste à l'état `Created` (`docker compose ps -a`), un port est sans doute déjà utilisé
+sur ta machine : le message d'erreur s'affiche dans la sortie de `docker compose up`.
 
 ### Lancer le backend sans Docker
 ```bash
