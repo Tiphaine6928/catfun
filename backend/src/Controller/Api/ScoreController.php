@@ -19,6 +19,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api', name: 'api_')]
 class ScoreController extends AbstractController
 {
+    use JsonApiTrait;
+
     private const DEFAULT_LIMIT = 10;
     private const MAX_LIMIT = 100;
 
@@ -81,14 +83,9 @@ class ScoreController extends AbstractController
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
     ): JsonResponse {
-        try {
-            $data = json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            return $this->error('Le corps de la requête doit être du JSON valide.', Response::HTTP_BAD_REQUEST);
-        }
-
-        if (!\is_array($data)) {
-            return $this->error('Le corps de la requête doit être un objet JSON.', Response::HTTP_BAD_REQUEST);
+        $data = $this->decodeJsonBody($request);
+        if ($data instanceof JsonResponse) {
+            return $data;
         }
 
         $errors = [];
@@ -114,12 +111,7 @@ class ScoreController extends AbstractController
 
         $violations = $validator->validate($score);
         if (\count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $violation) {
-                $errors[$violation->getPropertyPath()] = $violation->getMessage();
-            }
-
-            return $this->validationError($errors);
+            return $this->violationsError($violations);
         }
 
         $entityManager->persist($score);
@@ -194,18 +186,5 @@ class ScoreController extends AbstractController
         }
 
         return $data;
-    }
-
-    /**
-     * @param array<string, string> $errors
-     */
-    private function validationError(array $errors): JsonResponse
-    {
-        return $this->json(['message' => 'Données invalides.', 'errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
-    }
-
-    private function error(string $message, int $status): JsonResponse
-    {
-        return $this->json(['message' => $message], $status);
     }
 }

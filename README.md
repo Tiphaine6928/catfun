@@ -100,6 +100,7 @@ Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 **Authentification**
 - `POST /api/login` avec `{"email": "...", "password": "..."}` → renvoie `{"token": "..."}`
 - 🔒 `GET /api/me` → utilisateur connecté (email et pseudo)
+- 🔒 `PATCH /api/me` avec `{"pseudo": "NouveauPseudo"}` → change le pseudo (seul champ modifiable)
 
 **Jeux et scores**
 
