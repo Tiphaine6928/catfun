@@ -2,4 +2,4 @@ vendor/
 var/
 .env.local
 .env.*.local
-config/jwt/*.pem
+config/jwt/

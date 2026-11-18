@@ -56,7 +56,8 @@ docker compose up --build
 ```
 
 Au démarrage, le conteneur backend installe les dépendances PHP (si `vendor/` est absent)
-et génère les clés JWT (si elles n'existent pas encore).
+et lance `bin/init-env.sh`, qui génère les secrets dans `backend/.env.local` et les clés JWT
+s'ils n'existent pas encore.
 
 Créer ensuite les tables :
 ```bash
@@ -70,21 +71,27 @@ docker compose exec backend php bin/console doctrine:migrations:migrate
 ```bash
 cd backend
 composer install
-php bin/console lexik:jwt:generate-keypair --skip-if-exists
+sh bin/init-env.sh
 php bin/console doctrine:database:create
 php bin/console doctrine:migrations:migrate
 symfony server:start
 ```
 
-La base de données se configure dans `backend/.env.local` :
+Les secrets (`APP_SECRET`, `JWT_PASSPHRASE`) sont générés par `bin/init-env.sh` dans
+`backend/.env.local`, qui n'est pas versionné. Ne mets jamais de vrai secret dans `.env`.
+
+La base de données se configure aussi dans `backend/.env.local` :
 `DATABASE_URL="mysql://admin:root@127.0.0.1:3306/catfun?serverVersion=8.0"`
 
 ### Lancer le frontend sans Docker
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
+
+Vite démarre un serveur de développement sur http://localhost:5173 avec rechargement automatique.
+`npm run build` vérifie les types et génère le site dans `frontend/dist/`.
 
 ### API
 
@@ -112,6 +119,7 @@ Le classement est public : il affiche seulement la partie de l'email avant le `@
 ### Tests
 ```bash
 cd backend
+sh bin/init-env.sh
 php bin/console doctrine:database:create --env=test
 php bin/console doctrine:migrations:migrate --env=test
 php bin/phpunit

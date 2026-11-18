@@ -47,4 +47,19 @@ class RegistrationControllerTest extends WebTestCase
         // self::assertResponseRedirects('/'); @TODO: set the appropriate path that the user is redirected to.
         self::assertCount(1, $this->userRepository->findAll());
     }
+
+    public function testRegisterRejectsAnInvalidEmail(): void
+    {
+        $this->client->request('GET', '/register');
+
+        $this->client->submitForm('Register', [
+            'registration_form[email]' => 'toto',
+            'registration_form[plainPassword]' => 'password',
+            'registration_form[agreeTerms]' => true,
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'n\'est pas valide');
+        self::assertCount(0, $this->userRepository->findAll());
+    }
 }

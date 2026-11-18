@@ -1,32 +1,25 @@
-# Étape 1 : build
-FROM node:20 AS build
+# Étape 1 : build avec Vite
+FROM node:22 AS build
 
 WORKDIR /app
 
-# Copier package.json et package-lock.json et installer
-COPY package*.json ./
-RUN npm install
+# Dépendances d'abord (meilleur cache des couches Docker)
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copier tout le code source
+# Code source, puis build dans ./dist
 COPY . .
-
-# Compiler le TypeScript dans ./dist
 RUN npm run build
 
-
-# Étape 2 : serveur de production
-FROM node:20
+# Étape 2 : serveur de fichiers statiques
+FROM node:22
 
 WORKDIR /app
 
-# Installer http-server globalement
 RUN npm install -g http-server
 
-# Copier le contenu de dist depuis l'étape build
 COPY --from=build /app/dist ./dist
 
-# Exposer le port
 EXPOSE 8080
 
-# Lancer le serveur sur le dossier dist
 CMD ["http-server", "dist", "-p", "8080"]

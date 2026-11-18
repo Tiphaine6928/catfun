@@ -1,3 +1,5 @@
+import './styles.css';
+
 const button = document.getElementById('meow');
 const output = document.getElementById('output');
 

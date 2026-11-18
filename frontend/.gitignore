@@ -1,0 +1,14 @@
+# Dépendances et build : régénérés par "npm install" et "npm run build"
+node_modules/
+dist/
+
+# Logs
+npm-debug.log*
+*.log
+
+# Fichiers locaux / éditeurs
+*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea

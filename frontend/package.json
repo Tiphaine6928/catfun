@@ -1,14 +1,14 @@
 {
   "name": "catfun-frontend",
+  "private": true,
   "version": "1.0.0",
-  "main": "index.html",
+  "type": "module",
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "tsc && node -e \"require('fs').copyFileSync('index.html','dist/index.html')\"",
-    "start": "npm run build && http-server ./dist -p 8080"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "http-server": "^14.1.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }
