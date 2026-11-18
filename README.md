@@ -93,6 +93,17 @@ npm run dev
 Vite démarre un serveur de développement sur http://localhost:5173 avec rechargement automatique.
 `npm run build` vérifie les types et génère le site dans `frontend/dist/`.
 
+Le frontend appelle l'API sur http://localhost:8082 (nginx du docker-compose).
+Pour un backend ailleurs (par exemple `symfony server:start` sur le port 8000),
+crée `frontend/.env.local` :
+```
+VITE_API_URL=http://localhost:8000
+```
+
+Pages disponibles :
+- `#/login` : connexion (le token JWT est gardé dans le navigateur)
+- `#/` : accueil, réservé aux utilisateurs connectés
+
 ### API
 
 Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
