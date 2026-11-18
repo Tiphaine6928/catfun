@@ -1,5 +1,7 @@
 # Catfun
 
+[![CI](https://github.com/Tiphaine6928/catfun/actions/workflows/ci.yml/badge.svg)](https://github.com/Tiphaine6928/catfun/actions/workflows/ci.yml)
+
 Catfun est une plateforme de mini-jeux fun et accessible, développée autour du thème des chats.
 Le projet propose des jeux simples et rapides, permettant aux utilisateurs de s'amuser, de suivre 
 leurs scores et de comparer leurs performances.
@@ -135,6 +137,21 @@ Pages disponibles :
 - Score : **50 par paire + bonus de précision de 50 par paire, moins 10 par erreur**
   (le bonus ne descend jamais sous 0). Maximum : 600 en Facile, 800 en Normal, 1200 en Difficile.
   Pas de chronomètre : seul le nombre de coups compte.
+
+### Intégration continue (GitHub Actions)
+
+À chaque push et à chaque pull request, GitHub lance automatiquement trois tâches
+(fichier `.github/workflows/ci.yml`) :
+
+| Tâche | Ce qu'elle vérifie |
+|---|---|
+| Backend | `composer.json`, schéma de la base, configuration, tests PHPUnit (PHP 8.4, MySQL 8.0) |
+| Frontend | types TypeScript, build Vite, tests Vitest (Node 22) |
+| Bout en bout | tests Playwright dans Chromium, contre le vrai backend et MySQL |
+
+Les résultats sont visibles dans l'onglet **Actions** du dépôt GitHub, et à côté de chaque commit
+(✓ vert ou ✗ rouge). En cas d'échec des tests de bout en bout, le rapport Playwright et les captures
+d'écran sont téléchargeables en bas de la page de l'exécution (« Artifacts »).
 
 ### Tests du frontend
 
