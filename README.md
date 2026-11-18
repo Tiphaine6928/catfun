@@ -64,7 +64,7 @@ Créer ensuite les tables :
 docker compose exec backend php bin/console doctrine:migrations:migrate
 ```
 
-- Backend (Symfony via nginx) : http://localhost:8082
+- API (Symfony via nginx) : http://localhost:8082/api/… (ouvrir http://localhost:8082 renvoie vers le site)
 - Frontend : http://localhost:8081
 - Base MySQL (pour un outil comme DBeaver ou MySQL Workbench) : `127.0.0.1`, port **3307**,
   utilisateur `admin`, mot de passe `root`. Le port 3307 évite le conflit avec un MySQL déjà
@@ -91,7 +91,7 @@ La base de données se configure aussi dans `backend/.env.local` :
 `DATABASE_URL="mysql://admin:root@127.0.0.1:3306/catfun?serverVersion=8.0"`
 
 Si le frontend tourne avec Vite (port 5173) plutôt qu'avec Docker, indique aussi son adresse
-dans `backend/.env.local`, pour les liens « Créer un compte » des pages Symfony :
+dans `backend/.env.local`, pour que l'adresse du backend redirige vers le bon site :
 `FRONTEND_URL=http://localhost:5173`
 
 ### Lancer le frontend sans Docker
