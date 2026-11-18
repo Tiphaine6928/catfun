@@ -98,6 +98,18 @@ final class ScoreControllerTest extends ApiTestCase
         self::assertResponseStatusCodeSame(400);
     }
 
+    public function testLeaderboardShowsPseudosNotEmails(): void
+    {
+        $user = $this->createUser('tiphaine.chat@example.com', 'MinouDu69');
+        $game = $this->createGame('Pendu');
+        $this->requestJson('POST', '/api/scores', ['gameId' => $game->getId(), 'points' => 10], $user);
+
+        $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard');
+
+        self::assertSame('MinouDu69', $data['scores'][0]['player']);
+        self::assertStringNotContainsString('tiphaine', (string) $this->client->getResponse()->getContent());
+    }
+
     public function testLeaderboardOfUnknownGame(): void
     {
         $data = $this->requestJson('GET', '/api/games/123456/leaderboard');

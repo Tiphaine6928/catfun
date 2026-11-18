@@ -184,8 +184,8 @@ class ScoreController extends AbstractController
         ];
 
         if ($withPlayer) {
-            // Le classement est public : on n'expose pas l'adresse email complète.
-            $data['player'] = strstr((string) $score->getPlayer()?->getEmail(), '@', true) ?: 'joueur';
+            // Le classement est public : on affiche le pseudo, jamais l'email.
+            $data['player'] = $score->getPlayer()?->getPseudo();
         }
 
         if ($withGame) {

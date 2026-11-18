@@ -5,7 +5,7 @@
 {% block body %}
     <h1>CatFun 🐱</h1>
     {% if app.user %}
-        <p>Connecté en tant que {{ app.user.userIdentifier }} — <a href="{{ path('app_logout') }}">Déconnexion</a></p>
+        <p>Connecté en tant que {{ app.user.pseudo }} — <a href="{{ path('app_logout') }}">Déconnexion</a></p>
     {% else %}
         <p><a href="{{ path('app_login') }}">Connexion</a> · <a href="{{ path('app_register') }}">Inscription</a></p>
     {% endif %}

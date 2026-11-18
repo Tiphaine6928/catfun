@@ -99,7 +99,7 @@ Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 
 **Authentification**
 - `POST /api/login` avec `{"email": "...", "password": "..."}` → renvoie `{"token": "..."}`
-- 🔒 `GET /api/me` → utilisateur connecté
+- 🔒 `GET /api/me` → utilisateur connecté (email et pseudo)
 
 **Jeux et scores**
 
@@ -114,7 +114,9 @@ Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 Erreurs renvoyées en JSON : `400` (JSON ou paramètre invalide), `401` (token absent ou invalide),
 `404` (jeu inexistant), `422` (données invalides, détail par champ dans `errors`).
 
-Le classement est public : il affiche seulement la partie de l'email avant le `@`.
+Le classement est public : il affiche le pseudo des joueurs, jamais leur email.
+Le pseudo est choisi à l'inscription (3 à 30 caractères : lettres, chiffres, `_` et `-`)
+et il est unique, sans tenir compte des majuscules.
 
 ### Tests
 ```bash

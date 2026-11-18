@@ -13,7 +13,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_USER_PSEUDO', fields: ['pseudo'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[UniqueEntity(fields: ['pseudo'], message: 'Ce pseudo est déjà pris.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -26,6 +28,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email(message: 'L\'adresse email "{{ value }}" n\'est pas valide.')]
     #[Assert\Length(max: 180)]
     private ?string $email = null;
+
+    /**
+     * Nom affiché publiquement (classements). Unique, sans tenir compte des majuscules
+     * (collation MySQL utf8mb4_unicode_ci).
+     */
+    #[ORM\Column(length: 30)]
+    #[Assert\NotBlank(message: 'Merci de choisir un pseudo.')]
+    #[Assert\Length(
+        min: 3,
+        max: 30,
+        minMessage: 'Le pseudo doit faire au moins {{ limit }} caractères.',
+        maxMessage: 'Le pseudo doit faire au plus {{ limit }} caractères.',
+    )]
+    #[Assert\Regex(
+        pattern: '/^[\p{L}\p{N}_-]+$/u',
+        message: 'Le pseudo ne peut contenir que des lettres, des chiffres, « _ » et « - ».',
+    )]
+    private ?string $pseudo = null;
 
     /**
      * @var list<string> The user roles
@@ -63,6 +83,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPseudo(): ?string
+    {
+        return $this->pseudo;
+    }
+
+    public function setPseudo(string $pseudo): static
+    {
+        $this->pseudo = trim($pseudo);
 
         return $this;
     }

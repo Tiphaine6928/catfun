@@ -29,9 +29,11 @@ abstract class ApiTestCase extends WebTestCase
         }
     }
 
-    protected function createUser(string $email): User
+    protected function createUser(string $email, ?string $pseudo = null): User
     {
-        $user = (new User())->setEmail($email);
+        $user = (new User())
+            ->setEmail($email)
+            ->setPseudo($pseudo ?? strstr($email, '@', true));
         $user->setPassword('not-used-in-api-tests');
         $this->em->persist($user);
         $this->em->flush();

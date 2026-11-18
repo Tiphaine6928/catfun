@@ -13,11 +13,12 @@ final class UserControllerTest extends ApiTestCase
 
     public function testMeReturnsTheConnectedUser(): void
     {
-        $user = $this->createUser('alice@cat.fun');
+        $user = $this->createUser('alice@cat.fun', 'Alice_99');
 
         $data = $this->requestJson('GET', '/api/me', as: $user);
 
         self::assertResponseIsSuccessful();
         self::assertSame('alice@cat.fun', $data['user']);
+        self::assertSame('Alice_99', $data['pseudo']);
     }
 }
