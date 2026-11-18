@@ -46,7 +46,7 @@ class ScoreController extends AbstractController
     }
 
     /**
-     * Classement d'un jeu, du meilleur score au moins bon. Public.
+     * Classement d'un jeu : le meilleur score de chaque joueur, du plus haut au plus bas. Public.
      * Paramètre optionnel : ?limit=10 (entre 1 et 100).
      */
     #[Route('/games/{id<\d+>}/leaderboard', name: 'games_leaderboard', methods: ['GET'])]
@@ -62,13 +62,29 @@ class ScoreController extends AbstractController
             return $this->error(sprintf('Le paramètre "limit" doit être compris entre 1 et %d.', self::MAX_LIMIT), Response::HTTP_BAD_REQUEST);
         }
 
+        // Rang partagé en cas d'égalité de points : 1, 2, 2, 4…
+        $scores = [];
         $rank = 0;
+        $previousPoints = null;
+        foreach ($this->scoreRepository->findLeaderboardForGame($game, $limit) as $position => $row) {
+            if ($row['points'] !== $previousPoints) {
+                $rank = $position + 1;
+                $previousPoints = $row['points'];
+            }
+            // Le classement est public : on affiche le pseudo, jamais l'email.
+            $scores[] = [
+                'rank' => $rank,
+                'id' => $row['id'],
+                'points' => $row['points'],
+                'date' => $row['date']->format(\DateTimeInterface::ATOM),
+                'player' => $row['pseudo'],
+            ];
+        }
 
         return $this->json([
             'game' => ['id' => $game->getId(), 'name' => $game->getName()],
-            'scores' => array_map(function (Score $score) use (&$rank) {
-                return ['rank' => ++$rank] + $this->serializeScore($score, withPlayer: true);
-            }, $this->scoreRepository->findTopScoresForGame($game, $limit)),
+            'totalPlayers' => $this->scoreRepository->countPlayersForGame($game),
+            'scores' => $scores,
         ]);
     }
 
@@ -167,18 +183,13 @@ class ScoreController extends AbstractController
     /**
      * @return array<string, mixed>
      */
-    private function serializeScore(Score $score, bool $withPlayer = false, bool $withGame = false): array
+    private function serializeScore(Score $score, bool $withGame = false): array
     {
         $data = [
             'id' => $score->getId(),
             'points' => $score->getPoints(),
             'date' => $score->getDate()->format(\DateTimeInterface::ATOM),
         ];
-
-        if ($withPlayer) {
-            // Le classement est public : on affiche le pseudo, jamais l'email.
-            $data['player'] = $score->getPlayer()?->getPseudo();
-        }
 
         if ($withGame) {
             $game = $score->getGame();

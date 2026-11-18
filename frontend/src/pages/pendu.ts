@@ -47,6 +47,7 @@ const TEMPLATE = `
       <p class="pendu__save" aria-live="polite"></p>
       <button type="button" class="button button--ghost button--small retry-save" hidden>Réessayer l’enregistrement</button>
       <button type="button" class="button button--primary replay">Rejouer</button>
+      <a class="button button--ghost leaderboard-link" href="#/classement">Voir le classement</a>
     </section>
 
     <p class="visually-hidden" aria-live="assertive" data-announce></p>
@@ -84,6 +85,9 @@ export function renderPendu(container: HTMLElement): () => void {
 
   // Le jeu côté serveur (pour enregistrer les scores), chargé en arrière-plan
   let gameInfo: Promise<Game> = findGame('Pendu');
+  gameInfo
+    .then((game) => ($<HTMLAnchorElement>('.leaderboard-link').href = `#/classement?jeu=${game.id}`))
+    .catch(() => {});
   gameInfo.catch((error: unknown) => {
     showAlert(error instanceof Error ? error.message : 'Impossible de charger le jeu.');
   });

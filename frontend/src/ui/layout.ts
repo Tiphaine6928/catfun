@@ -1,4 +1,4 @@
-import { fetchCurrentUser, logout } from '../auth';
+import { fetchCurrentUser, isLoggedIn, logout } from '../auth';
 import { navigate } from '../router';
 
 const TEMPLATE = `
@@ -7,17 +7,26 @@ const TEMPLATE = `
     <nav class="topbar__nav" aria-label="Navigation principale">
       <a href="#/">Accueil</a>
       <a href="#/pendu">Pendu</a>
+      <a href="#/classement">Classement</a>
     </nav>
-    <div class="topbar__user">
-      <span class="topbar__pseudo" title="Connecté">…</span>
-      <button type="button" class="button button--ghost button--small logout">Se déconnecter</button>
-    </div>
+    <div class="topbar__user"></div>
   </header>
   <main class="page"></main>
 `;
 
+const USER_TEMPLATE = `
+  <span class="topbar__pseudo" title="Connecté">…</span>
+  <button type="button" class="button button--ghost button--small logout">Se déconnecter</button>
+`;
+
+const GUEST_TEMPLATE = `
+  <a class="button button--ghost button--small" href="#/login">Se connecter</a>
+  <a class="button button--primary button--small" href="#/register">Créer un compte</a>
+`;
+
 /**
- * Affiche la barre du haut (pages connectées) et renvoie l'élément <main> où placer la page.
+ * Affiche la barre du haut et renvoie l'élément <main> où placer la page.
+ * Pour un visiteur non connecté, la barre propose de se connecter ou de créer un compte.
  * `current` est le chemin de la page, pour marquer le lien actif.
  */
 export function renderLayout(container: HTMLElement, current: string): HTMLElement {
@@ -29,6 +38,18 @@ export function renderLayout(container: HTMLElement, current: string): HTMLEleme
     }
   }
 
+  const user = container.querySelector<HTMLDivElement>('.topbar__user')!;
+  if (!isLoggedIn()) {
+    user.innerHTML = GUEST_TEMPLATE;
+    // Après connexion ou inscription, on revient sur cette page
+    for (const link of user.querySelectorAll<HTMLAnchorElement>('a')) {
+      link.setAttribute('href', `${link.getAttribute('href')}?redirect=${encodeURIComponent(current)}`);
+    }
+
+    return container.querySelector<HTMLElement>('.page')!;
+  }
+
+  user.innerHTML = USER_TEMPLATE;
   container.querySelector('.logout')!.addEventListener('click', () => {
     logout();
     navigate('/login');

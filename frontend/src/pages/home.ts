@@ -2,7 +2,7 @@ import { renderLayout } from '../ui/layout';
 
 const TEMPLATE = `
   <h1>Bienvenue sur CatFun !</h1>
-  <p class="page__intro">Choisis un jeu, bats ton record et grimpe dans le classement 🐾</p>
+  <p class="page__intro">Choisis un jeu, bats ton record et grimpe dans le <a href="#/classement">classement</a> 🐾</p>
 
   <ul class="game-list">
     <li>

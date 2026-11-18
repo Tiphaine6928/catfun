@@ -43,3 +43,27 @@ export async function fetchBestScore(gameId: number): Promise<number | null> {
 
   return best;
 }
+
+export interface LeaderboardEntry {
+  rank: number;
+  id: number;
+  points: number;
+  date: string;
+  player: string;
+}
+
+export interface Leaderboard {
+  game: { id: number; name: string };
+  totalPlayers: number;
+  scores: LeaderboardEntry[];
+}
+
+/** Classement public d'un jeu : le meilleur score de chaque joueur. */
+export function fetchLeaderboard(gameId: number, limit = 20): Promise<Leaderboard> {
+  return apiFetch<Leaderboard>(`/api/games/${gameId}/leaderboard?limit=${limit}`, { auth: false });
+}
+
+/** Page de chaque jeu jouable (les autres sont "bientôt disponibles"). */
+export const GAME_PAGES: Readonly<Record<string, string>> = {
+  Pendu: '/pendu',
+};

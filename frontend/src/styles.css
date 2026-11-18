@@ -579,3 +579,148 @@ a.game-card:hover {
   margin-top: 0.75rem;
   margin-right: 0.5rem;
 }
+
+/* ---------- Classement ---------- */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tabs__tab {
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tabs__tab:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.tabs__tab[aria-current='page'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.leaderboard__loading,
+.leaderboard__empty,
+.leaderboard__count {
+  color: var(--color-muted);
+}
+
+.leaderboard__empty {
+  padding: 2rem 1rem;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.leaderboard__count {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+
+.leaderboard .alert + .button {
+  margin-top: -0.25rem;
+}
+
+.my-rank {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+}
+
+.ranking {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.ranking th,
+.ranking td {
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ranking tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.ranking thead th {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ranking__rank {
+  width: 4.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking__player {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ranking__points {
+  text-align: right !important;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking__date {
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.ranking__me > * {
+  background: var(--color-bg);
+}
+
+.ranking__me .ranking__player {
+  color: var(--color-primary);
+}
+
+.badge--me {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Sur petit écran, la date est masquée pour garder un tableau lisible */
+@media (max-width: 480px) {
+  .ranking th,
+  .ranking td {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .ranking__rank {
+    width: 3rem;
+  }
+
+  .ranking__date {
+    display: none;
+  }
+}
+
+.pendu__result a.button {
+  margin-top: 0.75rem;
+}

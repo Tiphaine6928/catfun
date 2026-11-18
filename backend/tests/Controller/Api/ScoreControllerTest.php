@@ -86,9 +86,11 @@ final class ScoreControllerTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSame('Pendu', $data['game']['name']);
-        self::assertSame([90, 70, 50], array_column($data['scores'], 'points'));
-        self::assertSame([1, 2, 3], array_column($data['scores'], 'rank'));
-        self::assertSame(['bob', 'alice', 'alice'], array_column($data['scores'], 'player'));
+        // Une seule ligne par joueur (son meilleur score), le Mémoire n'est pas compté
+        self::assertSame([90, 70], array_column($data['scores'], 'points'));
+        self::assertSame([1, 2], array_column($data['scores'], 'rank'));
+        self::assertSame(['bob', 'alice'], array_column($data['scores'], 'player'));
+        self::assertSame(2, $data['totalPlayers']);
         self::assertStringNotContainsString('@', (string) $this->client->getResponse()->getContent());
 
         $data = $this->requestJson('GET', '/api/games/'.$pendu->getId().'/leaderboard?limit=1');
@@ -96,6 +98,53 @@ final class ScoreControllerTest extends ApiTestCase
 
         $this->requestJson('GET', '/api/games/'.$pendu->getId().'/leaderboard?limit=0');
         self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testLeaderboardSharesTheRankOnTiesAndLimitsPlayers(): void
+    {
+        $game = $this->createGame('Pendu');
+        $players = [];
+        foreach (['ana' => 80, 'bea' => 100, 'cle' => 80, 'dan' => 60, 'eve' => 80] as $pseudo => $points) {
+            $players[$pseudo] = $this->createUser("$pseudo@cat.fun");
+            $this->addScore($players[$pseudo], $game, $points, "2026-01-0{$this->dayFor($pseudo)} 10:00:00");
+        }
+
+        $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard');
+
+        // À égalité, le score obtenu en premier passe devant, mais le rang est partagé
+        self::assertSame(['bea', 'ana', 'cle', 'eve', 'dan'], array_column($data['scores'], 'player'));
+        self::assertSame([1, 2, 2, 2, 5], array_column($data['scores'], 'rank'));
+
+        // La limite porte sur le nombre de joueurs, le total reste le nombre de joueurs classés
+        $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard?limit=2');
+        self::assertSame(['bea', 'ana'], array_column($data['scores'], 'player'));
+        self::assertSame(5, $data['totalPlayers']);
+    }
+
+    public function testLeaderboardKeepsTheFirstTimeAPlayerReachedTheirRecord(): void
+    {
+        $game = $this->createGame('Pendu');
+        $alice = $this->createUser('alice@cat.fun');
+        $this->addScore($alice, $game, 50, '2026-01-01 10:00:00');
+        $first = $this->addScore($alice, $game, 90, '2026-01-02 10:00:00');
+        $this->addScore($alice, $game, 90, '2026-01-03 10:00:00');
+
+        $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard');
+
+        self::assertCount(1, $data['scores']);
+        self::assertSame($first->getId(), $data['scores'][0]['id']);
+        self::assertStringStartsWith('2026-01-02', $data['scores'][0]['date']);
+    }
+
+    public function testLeaderboardOfAGameWithoutScores(): void
+    {
+        $game = $this->createGame('Mémoire');
+
+        $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard');
+
+        self::assertResponseIsSuccessful();
+        self::assertSame([], $data['scores']);
+        self::assertSame(0, $data['totalPlayers']);
     }
 
     public function testLeaderboardShowsPseudosNotEmails(): void
@@ -157,5 +206,24 @@ final class ScoreControllerTest extends ApiTestCase
 
         $data = $this->requestJson('GET', '/api/me/games/'.$pendu->getId().'/best', as: $alice);
         self::assertSame(75, $data['best']);
+    }
+
+    private function addScore(\App\Entity\User $player, \App\Entity\Game $game, int $points, string $date): Score
+    {
+        $score = (new Score())
+            ->setPlayer($player)
+            ->setGame($game)
+            ->setPoints($points)
+            ->setDate(new \DateTimeImmutable($date));
+        $this->em->persist($score);
+        $this->em->flush();
+
+        return $score;
+    }
+
+    /** Jour d'obtention du score, pour départager les égalités dans un ordre connu. */
+    private function dayFor(string $pseudo): int
+    {
+        return ['ana' => 1, 'bea' => 2, 'cle' => 3, 'dan' => 4, 'eve' => 5][$pseudo];
     }
 }

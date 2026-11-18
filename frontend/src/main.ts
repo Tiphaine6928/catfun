@@ -2,6 +2,7 @@ import './styles.css';
 import { setUnauthorizedHandler } from './api';
 import { isLoggedIn, logout } from './auth';
 import { renderHome } from './pages/home';
+import { renderLeaderboard } from './pages/leaderboard';
 import { renderLogin } from './pages/login';
 import { renderPendu } from './pages/pendu';
 import { renderRegister } from './pages/register';
@@ -26,6 +27,7 @@ startRouter({
   routes: {
     '/': { title: 'Accueil', render: renderHome, requiresAuth: true },
     '/pendu': { title: 'Pendu', render: renderPendu, requiresAuth: true },
+    '/classement': { title: 'Classement', render: renderLeaderboard },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },
     '/register': { title: 'Créer un compte', render: renderRegister, guestOnly: true },
   },

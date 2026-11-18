@@ -105,6 +105,7 @@ Pages disponibles :
 - `#/register` : création de compte (connecte directement après l'inscription)
 - `#/` : accueil avec la liste des jeux (réservé aux utilisateurs connectés)
 - `#/pendu` : jeu du Pendu
+- `#/classement` : classement par jeu (public, accessible sans compte)
 
 ### Jeu du Pendu
 - Le chat a **neuf vies** : 9 erreurs autorisées.
@@ -135,7 +136,7 @@ Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 | Méthode | Route | Description |
 |---|---|---|
 | `GET` | `/api/games` | Liste des jeux (id, nom, description) |
-| `GET` | `/api/games/{id}/leaderboard?limit=10` | Classement d'un jeu (`limit` entre 1 et 100) |
+| `GET` | `/api/games/{id}/leaderboard?limit=10` | Classement d'un jeu : meilleur score de chaque joueur, rang partagé en cas d'égalité, nombre total de joueurs (`limit` entre 1 et 100) |
 | 🔒 `POST` | `/api/scores` | Enregistre un score : `{"gameId": 1, "points": 120}` → 201 |
 | 🔒 `GET` | `/api/me/scores?game={id}` | Historique de mes scores (filtre `game` optionnel) |
 | 🔒 `GET` | `/api/me/games/{id}/best` | Mon meilleur score sur un jeu (`null` si jamais joué) |

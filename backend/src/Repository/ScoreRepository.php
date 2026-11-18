@@ -6,6 +6,7 @@ use App\Entity\Game;
 use App\Entity\Score;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,23 +20,53 @@ class ScoreRepository extends ServiceEntityRepository
     }
 
     /**
-     * Meilleurs scores d'un jeu (leaderboard), du plus haut au plus bas.
-     * À égalité de points, le score obtenu en premier passe devant.
+     * Classement d'un jeu : une ligne par joueur, avec son meilleur score.
+     * Ordre : points décroissants, puis le score obtenu en premier.
+     * Si un joueur a plusieurs fois son record, c'est le plus ancien qui compte.
      *
-     * @return Score[]
+     * @return list<array{id: int, points: int, date: \DateTimeImmutable, pseudo: string}>
      */
-    public function findTopScoresForGame(Game $game, int $limit = 10): array
+    public function findLeaderboardForGame(Game $game, int $limit = 10): array
     {
-        return $this->createQueryBuilder('s')
-            ->addSelect('p')
-            ->join('s.player', 'p')
+        $sql = <<<'SQL'
+            SELECT id, points, date, pseudo
+            FROM (
+                SELECT s.id, s.points, s.date, u.pseudo,
+                       ROW_NUMBER() OVER (PARTITION BY s.player_id ORDER BY s.points DESC, s.date ASC, s.id ASC) AS position
+                FROM score s
+                INNER JOIN user u ON u.id = s.player_id
+                WHERE s.game_id = :game
+            ) best
+            WHERE position = 1
+            ORDER BY points DESC, date ASC, id ASC
+            LIMIT :limit
+            SQL;
+
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            $sql,
+            ['game' => $game->getId(), 'limit' => $limit],
+            ['game' => ParameterType::INTEGER, 'limit' => ParameterType::INTEGER],
+        );
+
+        return array_map(static fn (array $row) => [
+            'id' => (int) $row['id'],
+            'points' => (int) $row['points'],
+            'date' => new \DateTimeImmutable($row['date']),
+            'pseudo' => (string) $row['pseudo'],
+        ], $rows);
+    }
+
+    /**
+     * Nombre de joueurs ayant au moins un score sur ce jeu.
+     */
+    public function countPlayersForGame(Game $game): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(DISTINCT IDENTITY(s.player))')
             ->andWhere('s.game = :game')
             ->setParameter('game', $game)
-            ->orderBy('s.points', 'DESC')
-            ->addOrderBy('s.date', 'ASC')
-            ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
     }
 
     /**
