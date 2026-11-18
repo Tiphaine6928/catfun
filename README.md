@@ -126,10 +126,29 @@ Pages disponibles :
   Pas de chronomètre : seul le nombre de coups compte.
 
 ### Tests du frontend
+
+**Tests unitaires** (règles des jeux, avec Vitest) :
 ```bash
 cd frontend
 npm test
 ```
+
+**Tests de bout en bout** (Playwright : le vrai site dans un vrai navigateur, contre le vrai backend) :
+```bash
+cd frontend
+npx playwright install chromium   # une seule fois
+npm run test:e2e
+```
+
+Playwright démarre lui-même le backend (serveur PHP intégré, environnement `test`) et le frontend (Vite).
+Il faut donc PHP, les dépendances du backend (`composer install`) et MySQL accessibles sur ta machine.
+Avant les tests, la **base de test** `catfun_test` est recréée par les migrations ;
+la base de développement n'est jamais touchée. Chaque test crée ses propres comptes.
+
+- `npm run test:e2e:ui` ouvre l'interface de Playwright pour suivre les tests pas à pas.
+- Pour viser un backend déjà lancé (par exemple Docker), sans réinitialiser sa base :
+  `E2E_API_URL=http://localhost:8082 npm run test:e2e`
+- En cas d'échec, une capture d'écran est enregistrée dans `frontend/test-results/`.
 
 ### API
 
