@@ -1,0 +1,6 @@
+# Messages d'erreur de connexion, plus clairs que ceux fournis par Symfony
+# (mêmes textes que la page de connexion du frontend).
+# Les autres messages de sécurité gardent la traduction française de Symfony.
+'Invalid credentials.': 'Email ou mot de passe incorrect.'
+'Bad credentials.': 'Email ou mot de passe incorrect.'
+'Invalid CSRF token.': 'La page a expiré, recharge-la et réessaie.'

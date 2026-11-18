@@ -42,11 +42,15 @@ final class LoginControllerTest extends WebTestCase
         $crawler = $this->client->request('GET', '/login');
 
         self::assertResponseIsSuccessful();
-        self::assertPageTitleContains('Log in!');
+        self::assertPageTitleContains('Connexion');
+        self::assertSelectorTextContains('h1', 'Connexion');
+        self::assertSelectorTextContains('label[for="inputPassword"]', 'Mot de passe');
+        self::assertSelectorTextContains('.checkbox label', 'Se souvenir de moi');
+        self::assertSelectorExists('a[href="/register"]');
         self::assertSelectorExists('form[method="post"] input[type="email"][name="email"][required]');
         self::assertSelectorExists('input[type="password"][name="password"][required]');
         self::assertSelectorExists('input[type="checkbox"][name="_remember_me"]');
-        self::assertSelectorTextContains('button[type="submit"]', 'Sign in');
+        self::assertSelectorTextContains('button[type="submit"]', 'Se connecter');
         self::assertNotEmpty($crawler->filter('input[name="_csrf_token"]')->attr('value'), 'le jeton CSRF doit être présent');
         self::assertSelectorNotExists('.alert-danger');
     }
@@ -75,7 +79,7 @@ final class LoginControllerTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $crawler = $this->client->followRedirect();
-        self::assertSelectorTextContains('.alert-danger', 'Invalid credentials.');
+        self::assertSelectorTextContains('.alert-danger', 'Email ou mot de passe incorrect.');
         self::assertSame(self::EMAIL, $crawler->filter('input[name="email"]')->attr('value'), 'l’email saisi est conservé');
         self::assertSame('', (string) $crawler->filter('input[name="password"]')->attr('value'), 'le mot de passe n’est jamais renvoyé');
         $this->assertNotLoggedIn();
@@ -88,7 +92,7 @@ final class LoginControllerTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $this->client->followRedirect();
-        self::assertSelectorTextContains('.alert-danger', 'Invalid credentials.');
+        self::assertSelectorTextContains('.alert-danger', 'Email ou mot de passe incorrect.');
         $this->assertNotLoggedIn();
     }
 
@@ -98,14 +102,14 @@ final class LoginControllerTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $this->client->followRedirect();
-        self::assertSelectorExists('.alert-danger');
+        self::assertSelectorTextContains('.alert-danger', 'Email ou mot de passe incorrect.');
         $this->assertNotLoggedIn();
     }
 
     public function testAnInvalidCsrfTokenIsRejected(): void
     {
         $this->client->request('GET', '/login');
-        $this->client->submitForm('Sign in', [
+        $this->client->submitForm('Se connecter', [
             'email' => self::EMAIL,
             'password' => self::PASSWORD,
             '_csrf_token' => 'jeton-falsifie',
@@ -113,7 +117,7 @@ final class LoginControllerTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $this->client->followRedirect();
-        self::assertSelectorTextContains('.alert-danger', 'Invalid CSRF token.');
+        self::assertSelectorTextContains('.alert-danger', 'La page a expiré, recharge-la et réessaie.');
         $this->assertNotLoggedIn();
     }
 
@@ -192,7 +196,7 @@ final class LoginControllerTest extends WebTestCase
         if ($rememberMe) {
             $values['_remember_me'] = true;
         }
-        $this->client->submitForm('Sign in', $values);
+        $this->client->submitForm('Se connecter', $values);
     }
 
     private function assertNotLoggedIn(): void
