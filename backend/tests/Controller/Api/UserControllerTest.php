@@ -1,16 +1,23 @@
 <?php
 
-namespace App\Tests\Controller;
+namespace App\Tests\Controller\Api;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-
-final class UserControllerTest extends WebTestCase
+final class UserControllerTest extends ApiTestCase
 {
-    public function testIndex(): void
+    public function testMeRequiresAToken(): void
     {
-        $client = static::createClient();
-        $client->request('GET', '/api/user');
+        $this->requestJson('GET', '/api/me');
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testMeReturnsTheConnectedUser(): void
+    {
+        $user = $this->createUser('alice@cat.fun');
+
+        $data = $this->requestJson('GET', '/api/me', as: $user);
 
         self::assertResponseIsSuccessful();
+        self::assertSame('alice@cat.fun', $data['user']);
     }
 }

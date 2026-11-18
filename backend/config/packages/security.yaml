@@ -50,6 +50,9 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        # Liste des jeux et classements consultables sans être connecté
+        - { path: ^/api/games$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/games/\d+/leaderboard$, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }

@@ -86,9 +86,36 @@ npm install
 npm start
 ```
 
-### API d'authentification
+### API
+
+Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
+
+**Authentification**
 - `POST /api/login` avec `{"email": "...", "password": "..."}` → renvoie `{"token": "..."}`
-- `GET /api/me` avec l'en-tête `Authorization: Bearer <token>`
+- 🔒 `GET /api/me` → utilisateur connecté
+
+**Jeux et scores**
+
+| Méthode | Route | Description |
+|---|---|---|
+| `GET` | `/api/games` | Liste des jeux (id, nom, description) |
+| `GET` | `/api/games/{id}/leaderboard?limit=10` | Classement d'un jeu (`limit` entre 1 et 100) |
+| 🔒 `POST` | `/api/scores` | Enregistre un score : `{"gameId": 1, "points": 120}` → 201 |
+| 🔒 `GET` | `/api/me/scores?game={id}` | Historique de mes scores (filtre `game` optionnel) |
+| 🔒 `GET` | `/api/me/games/{id}/best` | Mon meilleur score sur un jeu (`null` si jamais joué) |
+
+Erreurs renvoyées en JSON : `400` (JSON ou paramètre invalide), `401` (token absent ou invalide),
+`404` (jeu inexistant), `422` (données invalides, détail par champ dans `errors`).
+
+Le classement est public : il affiche seulement la partie de l'email avant le `@`.
+
+### Tests
+```bash
+cd backend
+php bin/console doctrine:database:create --env=test
+php bin/console doctrine:migrations:migrate --env=test
+php bin/phpunit
+```
 
 Le CORS (nelmio/cors-bundle) autorise par défaut les appels vers `/api/` depuis `localhost`
 et `127.0.0.1` sur n'importe quel port. Pour une autre origine, surcharger `CORS_ALLOW_ORIGIN`
