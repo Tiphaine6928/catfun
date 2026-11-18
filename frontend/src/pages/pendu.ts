@@ -1,4 +1,4 @@
-import { fetchBestScore, findGame, saveScore, type Game } from '../games/api';
+import { createScoreSaver } from '../games/score-saver';
 import {
   ALPHABET,
   computeScore,
@@ -44,7 +44,7 @@ const TEMPLATE = `
       <h2 id="result-title" tabindex="-1"></h2>
       <p class="pendu__result-word"></p>
       <p class="pendu__result-score"></p>
-      <p class="pendu__save" aria-live="polite"></p>
+      <p class="score-save" aria-live="polite"></p>
       <button type="button" class="button button--ghost button--small retry-save" hidden>Réessayer l’enregistrement</button>
       <button type="button" class="button button--primary replay">Rejouer</button>
       <a class="button button--ghost leaderboard-link" href="#/classement">Voir le classement</a>
@@ -79,21 +79,16 @@ export function renderPendu(container: HTMLElement): () => void {
   const resultTitle = $('#result-title');
   const resultWord = $('.pendu__result-word');
   const resultScore = $('.pendu__result-score');
-  const saveStatus = $('.pendu__save');
-  const retrySave = $<HTMLButtonElement>('.retry-save');
+  const scores = createScoreSaver('Pendu', { status: $('.score-save'), retry: $<HTMLButtonElement>('.retry-save') });
   const announcer = $('[data-announce]');
 
   // Le jeu côté serveur (pour enregistrer les scores), chargé en arrière-plan
-  let gameInfo: Promise<Game> = findGame('Pendu');
-  gameInfo
-    .then((game) => ($<HTMLAnchorElement>('.leaderboard-link').href = `#/classement?jeu=${game.id}`))
-    .catch(() => {});
-  gameInfo.catch((error: unknown) => {
-    showAlert(error instanceof Error ? error.message : 'Impossible de charger le jeu.');
-  });
+  scores
+    .game()
+    .then((game) => $<HTMLAnchorElement>('.leaderboard-link').setAttribute('href', `#/classement?jeu=${game.id}`))
+    .catch((error: unknown) => showAlert(error instanceof Error ? error.message : 'Impossible de charger le jeu.'));
 
   let state: PenduState;
-  let pendingScore: number | null = null;
 
   const keys = new Map<string, HTMLButtonElement>();
   for (const letter of ALPHABET) {
@@ -132,11 +127,6 @@ export function renderPendu(container: HTMLElement): () => void {
 
   $('.new-game').addEventListener('click', () => newGame());
   $('.replay').addEventListener('click', () => newGame());
-  retrySave.addEventListener('click', () => {
-    if (pendingScore !== null) {
-      void submitScore(pendingScore);
-    }
-  });
 
   newGame();
 
@@ -145,7 +135,7 @@ export function renderPendu(container: HTMLElement): () => void {
 
   function newGame(): void {
     state = createGame(pickWord(WORDS, state?.word ?? null));
-    pendingScore = null;
+    scores.reset();
     for (const key of keys.values()) {
       key.disabled = false;
       key.classList.remove('key--correct', 'key--wrong');
@@ -250,42 +240,18 @@ export function renderPendu(container: HTMLElement): () => void {
     result.className = `pendu__result pendu__result--${won ? 'won' : 'lost'}`;
     resultTitle.textContent = won ? 'Bravo, tu as trouvé ! 🎉' : 'Perdu… le chat a épuisé ses neuf vies.';
     resultWord.textContent = `Le mot était : ${state.word}`;
-    retrySave.hidden = true;
-    saveStatus.textContent = '';
+    scores.reset();
 
     if (won) {
       const points = computeScore(state);
       resultScore.textContent = `Score : ${points} points (100 + 20 × ${state.lives} vies restantes + 5 par lettre différente)`;
-      void submitScore(points);
+      void scores.save(points);
     } else {
       resultScore.textContent = 'Pas de points cette fois, retente ta chance !';
     }
 
     announce(`${resultTitle.textContent} ${resultWord.textContent}.`);
     resultTitle.focus();
-  }
-
-  async function submitScore(points: number): Promise<void> {
-    pendingScore = points;
-    retrySave.hidden = true;
-    saveStatus.className = 'pendu__save';
-    saveStatus.textContent = 'Enregistrement du score…';
-    try {
-      const game = await gameInfo;
-      await saveScore(game.id, points);
-      pendingScore = null;
-      const best = await fetchBestScore(game.id).catch(() => null);
-      saveStatus.className = 'pendu__save pendu__save--ok';
-      saveStatus.textContent =
-        best !== null && points >= best ? `Score enregistré ✓ Nouveau record : ${points} points !` : `Score enregistré ✓ Ton record : ${best ?? points} points.`;
-    } catch (error) {
-      // Le jeu n'a peut-être pas pu être chargé : on retentera au prochain essai
-      gameInfo = findGame('Pendu');
-      gameInfo.catch(() => {});
-      saveStatus.className = 'pendu__save pendu__save--error';
-      saveStatus.textContent = `Le score n’a pas pu être enregistré. ${error instanceof Error ? error.message : ''}`.trim();
-      retrySave.hidden = false;
-    }
   }
 
   function showAlert(message: string): void {

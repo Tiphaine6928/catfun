@@ -88,8 +88,20 @@ a:hover {
   border-radius: var(--radius);
   font: inherit;
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
+}
+
+/* Un lien qui ressemble à un bouton garde les couleurs du bouton */
+a.button--primary,
+a.button--primary:hover {
+  color: var(--color-on-primary);
+}
+
+a.button--ghost,
+a.button--ghost:hover {
+  color: var(--color-text);
 }
 
 .button:disabled {
@@ -562,16 +574,17 @@ a.game-card:hover {
   font-weight: 600;
 }
 
-.pendu__save {
+/* Enregistrement du score (commun aux jeux) */
+.score-save {
   color: var(--color-muted);
 }
 
-.pendu__save--ok {
+.score-save--ok {
   color: var(--color-primary);
   font-weight: 600;
 }
 
-.pendu__save--error {
+.score-save--error {
   color: var(--color-error);
 }
 
@@ -723,4 +736,115 @@ a.game-card:hover {
 
 .pendu__result a.button {
   margin-top: 0.75rem;
+}
+
+/* ---------- Mémoire ---------- */
+.memoire__stats {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.memoire__grid {
+  --columns: 4;
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  gap: 0.5rem;
+  max-width: calc(var(--columns) * 7.5rem);
+}
+
+/* Les rangées ARIA n'influencent pas la mise en page : les cartes se placent dans la grille */
+.memoire__row,
+.memoire__row > [role='gridcell'] {
+  display: contents;
+}
+
+/* Niveau difficile sur petit écran : 4 colonnes au lieu de 6 */
+@media (max-width: 520px) {
+  .memoire__grid[data-level='difficile'] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.card-tile {
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 600px;
+  border-radius: var(--radius);
+}
+
+.card-tile[aria-disabled='true'] {
+  cursor: default;
+}
+
+.card-tile__inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.35s ease;
+}
+
+.card-tile--up .card-tile__inner {
+  transform: rotateY(180deg);
+}
+
+.card-tile__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  backface-visibility: hidden;
+  font-size: clamp(1.6rem, 7vw, 2.6rem);
+  line-height: 1;
+}
+
+.card-tile__back {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  font-weight: 800;
+  opacity: 0.95;
+  box-shadow: inset 0 0 0 4px rgb(255 255 255 / 0.25);
+}
+
+.card-tile:hover:not([aria-disabled='true']) .card-tile__back {
+  opacity: 1;
+  box-shadow: inset 0 0 0 4px rgb(255 255 255 / 0.5);
+}
+
+.card-tile__front {
+  transform: rotateY(180deg);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+}
+
+.card-tile--matched .card-tile__front {
+  border-color: var(--color-primary);
+  background: var(--color-bg);
+}
+
+.card-tile--miss .card-tile__front {
+  border-color: var(--color-error);
+}
+
+.card-tile:focus-visible {
+  outline-offset: 3px;
+}
+
+.game-result__detail {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-tile__inner,
+  .game-card,
+  .life {
+    transition: none;
+  }
 }

@@ -7,6 +7,7 @@ const TEMPLATE = `
     <nav class="topbar__nav" aria-label="Navigation principale">
       <a href="#/">Accueil</a>
       <a href="#/pendu">Pendu</a>
+      <a href="#/memoire">Mémoire</a>
       <a href="#/classement">Classement</a>
     </nav>
     <div class="topbar__user"></div>

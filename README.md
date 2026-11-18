@@ -105,6 +105,7 @@ Pages disponibles :
 - `#/register` : création de compte (connecte directement après l'inscription)
 - `#/` : accueil avec la liste des jeux (réservé aux utilisateurs connectés)
 - `#/pendu` : jeu du Pendu
+- `#/memoire?niveau=facile|normal|difficile` : jeu de Mémoire
 - `#/classement` : classement par jeu (public, accessible sans compte)
 
 ### Jeu du Pendu
@@ -114,6 +115,15 @@ Pages disponibles :
 - On joue à la souris, au doigt ou avec le clavier de l'ordinateur.
 - Score d'une victoire : **100 + 20 par vie restante + 5 par lettre différente du mot**,
   enregistré automatiquement. Une défaite ne rapporte pas de points.
+
+### Jeu de Mémoire
+- Retrouver toutes les paires de cartes (chats, pelote de laine, souris…).
+- Trois niveaux : **Facile** (6 paires), **Normal** (8 paires), **Difficile** (12 paires).
+- Deux cartes différentes se recachent après une seconde, ou dès qu'on retourne une 3e carte.
+- Jouable à la souris, au doigt ou au clavier (flèches, Entrée / Espace).
+- Score : **50 par paire + bonus de précision de 50 par paire, moins 10 par erreur**
+  (le bonus ne descend jamais sous 0). Maximum : 600 en Facile, 800 en Normal, 1200 en Difficile.
+  Pas de chronomètre : seul le nombre de coups compte.
 
 ### Tests du frontend
 ```bash

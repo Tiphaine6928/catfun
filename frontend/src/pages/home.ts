@@ -13,11 +13,11 @@ const TEMPLATE = `
       </a>
     </li>
     <li>
-      <div class="game-card game-card--soon" aria-disabled="true">
+      <a class="game-card" href="#/memoire">
         <span class="game-card__icon" aria-hidden="true">🃏</span>
-        <span class="game-card__name">Mémoire <span class="badge">Bientôt</span></span>
-        <span class="game-card__text">Retourne les cartes et retrouve les paires de chats.</span>
-      </div>
+        <span class="game-card__name">Mémoire</span>
+        <span class="game-card__text">Retourne les cartes et retrouve les paires de chats en un minimum de coups.</span>
+      </a>
     </li>
   </ul>
 `;

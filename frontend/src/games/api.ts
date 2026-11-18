@@ -66,4 +66,5 @@ export function fetchLeaderboard(gameId: number, limit = 20): Promise<Leaderboar
 /** Page de chaque jeu jouable (les autres sont "bientôt disponibles"). */
 export const GAME_PAGES: Readonly<Record<string, string>> = {
   Pendu: '/pendu',
+  Mémoire: '/memoire',
 };
