@@ -3,6 +3,7 @@ import { setUnauthorizedHandler } from './api';
 import { isLoggedIn, logout } from './auth';
 import { renderHome } from './pages/home';
 import { renderLogin } from './pages/login';
+import { renderPendu } from './pages/pendu';
 import { renderRegister } from './pages/register';
 import { navigate, startRouter } from './router';
 
@@ -24,6 +25,7 @@ startRouter({
   homePath: '/',
   routes: {
     '/': { title: 'Accueil', render: renderHome, requiresAuth: true },
+    '/pendu': { title: 'Pendu', render: renderPendu, requiresAuth: true },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },
     '/register': { title: 'Créer un compte', render: renderRegister, guestOnly: true },
   },

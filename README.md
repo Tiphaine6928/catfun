@@ -103,7 +103,22 @@ VITE_API_URL=http://localhost:8000
 Pages disponibles :
 - `#/login` : connexion (le token JWT est gardé dans le navigateur)
 - `#/register` : création de compte (connecte directement après l'inscription)
-- `#/` : accueil, réservé aux utilisateurs connectés
+- `#/` : accueil avec la liste des jeux (réservé aux utilisateurs connectés)
+- `#/pendu` : jeu du Pendu
+
+### Jeu du Pendu
+- Le chat a **neuf vies** : 9 erreurs autorisées.
+- Mots sur le thème des chats (`frontend/src/games/pendu/words.ts`). Les accents sont gérés :
+  la lettre E révèle aussi É, È, Ê.
+- On joue à la souris, au doigt ou avec le clavier de l'ordinateur.
+- Score d'une victoire : **100 + 20 par vie restante + 5 par lettre différente du mot**,
+  enregistré automatiquement. Une défaite ne rapporte pas de points.
+
+### Tests du frontend
+```bash
+cd frontend
+npm test
+```
 
 ### API
 

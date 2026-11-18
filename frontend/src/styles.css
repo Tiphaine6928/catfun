@@ -248,37 +248,334 @@ a:hover {
   color: var(--color-info);
 }
 
-/* ---------- Accueil ---------- */
+/* ---------- Utilitaires ---------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.button--small {
+  min-height: 40px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ---------- Mise en page des pages connectées ---------- */
 .topbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: 0.5rem 1.25rem;
+  padding: 0.6rem 1rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
 
 .topbar__brand {
+  color: var(--color-text);
   font-size: 1.2rem;
   font-weight: 700;
+  text-decoration: none;
+}
+
+.topbar__nav {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.topbar__nav a {
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius);
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.topbar__nav a:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.topbar__nav a[aria-current='page'] {
+  color: var(--color-primary);
+  background: var(--color-bg);
 }
 
 .topbar__user {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+}
+
+.topbar__pseudo {
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-.home {
-  max-width: 720px;
+.page {
+  max-width: 760px;
   margin: 0 auto;
-  padding: 2.5rem 1rem;
+  padding: 2rem 1rem 3rem;
 }
 
-.meow-output {
+.page__intro {
+  margin: 0 0 1.5rem;
+  color: var(--color-muted);
+}
+
+/* ---------- Accueil ---------- */
+.game-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-card {
+  display: grid;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) * 1.25);
+  color: var(--color-text);
+  font-weight: 400;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+a.game-card:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.game-card--soon {
+  opacity: 0.65;
+}
+
+.game-card__icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.game-card__name {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.game-card__text {
+  color: var(--color-muted);
+}
+
+/* ---------- Pendu ---------- */
+.pendu__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pendu__status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pendu__cat {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.pendu__lives-label {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.pendu__lives {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.25rem;
+}
+
+.life {
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+.life--lost {
+  opacity: 0.2;
+  filter: grayscale(1);
+}
+
+.pendu__word {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin: 0 0 1rem;
+  min-height: 3rem;
+}
+
+/* Un mot : ses cases restent sur la même ligne */
+.pendu__group {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.cell {
+  display: inline-grid;
+  place-items: center;
+  /* Rétrécit sur mobile pour qu'un mot de 12 lettres tienne sur une ligne */
+  width: clamp(1.1rem, 6.2vw, 2.2rem);
+  height: clamp(2rem, 9vw, 2.8rem);
+  border-bottom: 3px solid var(--color-text);
+  font-size: clamp(1.1rem, 5vw, 1.6rem);
+  font-weight: 700;
+}
+
+.cell--revealed {
+  border-bottom-color: var(--color-primary);
+}
+
+.cell--missed {
+  color: var(--color-error);
+  border-bottom-color: var(--color-error);
+}
+
+.cell--separator {
+  width: 0.8rem;
+  border-bottom: 0;
+}
+
+.pendu__wrong {
   min-height: 1.5em;
+  margin: 0 0 1rem;
+  color: var(--color-error);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.pendu__keyboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 0.4rem;
+}
+
+.key {
+  min-height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.key:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.key:disabled {
+  cursor: default;
+}
+
+.key--correct {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.key--wrong {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
+.pendu__hint {
+  margin: 0.75rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+/* Pas de clavier physique sur les écrans tactiles */
+@media (hover: none) and (pointer: coarse) {
+  .pendu__hint {
+    display: none;
+  }
+}
+
+.pendu__result {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) * 1.25);
+}
+
+.pendu__result--won {
+  border-color: var(--color-primary);
+}
+
+.pendu__result h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.4rem;
+}
+
+.pendu__result h2:focus {
+  outline: none;
+}
+
+.pendu__result p {
+  margin: 0 0 0.5rem;
+}
+
+.pendu__result-score {
+  font-weight: 600;
+}
+
+.pendu__save {
+  color: var(--color-muted);
+}
+
+.pendu__save--ok {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.pendu__save--error {
+  color: var(--color-error);
+}
+
+.pendu__result .button {
+  margin-top: 0.75rem;
+  margin-right: 0.5rem;
 }
