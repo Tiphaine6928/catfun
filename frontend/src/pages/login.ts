@@ -1,6 +1,15 @@
 import { login, loginErrorMessage } from '../auth';
-import { API_URL } from '../config';
 import { navigate } from '../router';
+import {
+  clearErrorOnInput,
+  hideAlert,
+  safeRedirect,
+  setFieldError,
+  setLoading,
+  setupPasswordToggle,
+  showAlert,
+  validateEmail,
+} from '../ui/form';
 
 const TEMPLATE = `
   <main class="auth-page">
@@ -33,7 +42,7 @@ const TEMPLATE = `
       </form>
 
       <p class="card__footer">
-        Pas encore de compte ? <a class="register-link" href="#">Créer un compte</a>
+        Pas encore de compte ? <a class="register-link" href="#/register">Créer un compte</a>
       </p>
     </section>
   </main>
@@ -47,38 +56,26 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
   const password = form.querySelector<HTMLInputElement>('#password')!;
   const toggle = form.querySelector<HTMLButtonElement>('.password__toggle')!;
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-  const submitLabel = submit.querySelector<HTMLSpanElement>('.button__label')!;
   const alert = container.querySelector<HTMLDivElement>('.alert')!;
 
-  // L'inscription se fait encore sur le backend (formulaire Symfony)
-  container.querySelector<HTMLAnchorElement>('.register-link')!.href = `${API_URL}/register`;
+  // On garde la page demandée si l'utilisateur passe par l'inscription
+  const redirect = params.get('redirect');
+  if (redirect) {
+    container.querySelector<HTMLAnchorElement>('.register-link')!.href = `#/register?redirect=${encodeURIComponent(redirect)}`;
+  }
 
   if (params.get('expired') === '1') {
     showAlert(alert, 'Ta session a expiré, reconnecte-toi.', 'info');
   }
 
-  toggle.addEventListener('click', () => {
-    const visible = password.type === 'text';
-    password.type = visible ? 'password' : 'text';
-    toggle.textContent = visible ? 'Afficher' : 'Masquer';
-    toggle.setAttribute('aria-pressed', String(!visible));
-  });
-
-  // Une erreur de champ disparaît dès qu'on corrige la saisie
-  for (const input of [email, password]) {
-    input.addEventListener('input', () => setFieldError(input, null));
-  }
+  setupPasswordToggle(password, toggle);
+  clearErrorOnInput(email, password);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     hideAlert(alert);
 
-    const emailValue = email.value.trim();
-    const emailError = !emailValue
-      ? 'Merci de saisir ton email.'
-      : email.validity.typeMismatch
-        ? 'Cette adresse email n’est pas valide.'
-        : null;
+    const emailError = validateEmail(email);
     const passwordError = password.value ? null : 'Merci de saisir ton mot de passe.';
     setFieldError(email, emailError);
     setFieldError(password, passwordError);
@@ -88,52 +85,18 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
       return;
     }
 
-    setLoading(true);
+    setLoading(submit, true, 'Se connecter', 'Connexion…');
     try {
-      await login(emailValue, password.value);
-      navigate(safeRedirect(params.get('redirect')));
+      await login(email.value.trim(), password.value);
+      navigate(safeRedirect(params.get('redirect'), ['/login', '/register']));
     } catch (error) {
       showAlert(alert, loginErrorMessage(error), 'error');
       password.value = '';
       password.focus();
     } finally {
-      setLoading(false);
+      setLoading(submit, false, 'Se connecter', 'Connexion…');
     }
   });
 
   email.focus();
-
-  function setLoading(loading: boolean): void {
-    submit.disabled = loading;
-    submit.setAttribute('aria-busy', String(loading));
-    submitLabel.textContent = loading ? 'Connexion…' : 'Se connecter';
-  }
-}
-
-function setFieldError(input: HTMLInputElement, message: string | null): void {
-  const error = document.getElementById(`${input.id}-error`)!;
-  error.textContent = message ?? '';
-  error.hidden = !message;
-  input.setAttribute('aria-invalid', String(Boolean(message)));
-  if (message) {
-    input.setAttribute('aria-describedby', error.id);
-  } else {
-    input.removeAttribute('aria-describedby');
-  }
-}
-
-function showAlert(alert: HTMLElement, message: string, kind: 'error' | 'info'): void {
-  alert.textContent = message;
-  alert.className = `alert alert--${kind}`;
-  alert.hidden = false;
-}
-
-function hideAlert(alert: HTMLElement): void {
-  alert.hidden = true;
-  alert.textContent = '';
-}
-
-/** N'accepte que des chemins internes (#/…) pour éviter les redirections vers un autre site. */
-function safeRedirect(redirect: string | null): string {
-  return redirect && /^\/[\w\-/]*$/.test(redirect) && redirect !== '/login' ? redirect : '/';
 }

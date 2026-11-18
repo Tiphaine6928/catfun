@@ -3,6 +3,7 @@ import { setUnauthorizedHandler } from './api';
 import { isLoggedIn, logout } from './auth';
 import { renderHome } from './pages/home';
 import { renderLogin } from './pages/login';
+import { renderRegister } from './pages/register';
 import { navigate, startRouter } from './router';
 
 const app = document.getElementById('app');
@@ -24,5 +25,6 @@ startRouter({
   routes: {
     '/': { title: 'Accueil', render: renderHome, requiresAuth: true },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },
+    '/register': { title: 'Créer un compte', render: renderRegister, guestOnly: true },
   },
 });

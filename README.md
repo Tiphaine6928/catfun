@@ -102,6 +102,7 @@ VITE_API_URL=http://localhost:8000
 
 Pages disponibles :
 - `#/login` : connexion (le token JWT est gardé dans le navigateur)
+- `#/register` : création de compte (connecte directement après l'inscription)
 - `#/` : accueil, réservé aux utilisateurs connectés
 
 ### API
@@ -109,6 +110,7 @@ Pages disponibles :
 Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 
 **Authentification**
+- `POST /api/register` avec `{"email": "...", "pseudo": "...", "password": "..."}` → crée le compte et renvoie directement un token (201)
 - `POST /api/login` avec `{"email": "...", "password": "..."}` → renvoie `{"token": "..."}`
 - 🔒 `GET /api/me` → utilisateur connecté (email et pseudo)
 - 🔒 `PATCH /api/me` avec `{"pseudo": "NouveauPseudo"}` → change le pseudo (seul champ modifiable)

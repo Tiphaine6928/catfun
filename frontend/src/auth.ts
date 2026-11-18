@@ -28,6 +28,22 @@ export async function login(email: string, password: string): Promise<CurrentUse
   return fetchCurrentUser();
 }
 
+/**
+ * Inscription : crée le compte et connecte directement l'utilisateur.
+ * Lève ApiError 422 avec les erreurs par champ (email, pseudo, password).
+ */
+export async function register(email: string, pseudo: string, password: string): Promise<CurrentUser> {
+  const { token, ...user } = await apiFetch<{ token: string } & CurrentUser>('/api/register', {
+    method: 'POST',
+    body: { email, pseudo, password },
+    auth: false,
+  });
+  saveToken(token);
+  currentUser = user;
+
+  return user;
+}
+
 export function logout(): void {
   clearToken();
   currentUser = null;
@@ -40,11 +56,14 @@ export async function fetchCurrentUser(): Promise<CurrentUser> {
   return currentUser;
 }
 
-/** Message à afficher pour une erreur de connexion. */
+/** Message à afficher pour une erreur de connexion ou d'inscription. */
 export function loginErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 401) {
       return 'Email ou mot de passe incorrect.';
+    }
+    if (error.status === 422) {
+      return 'Certains champs sont invalides, corrige-les puis réessaie.';
     }
     if (error.status === 429) {
       return 'Trop de tentatives, réessaie dans quelques minutes.';
