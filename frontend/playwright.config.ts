@@ -41,7 +41,9 @@ export default defineConfig({
           {
             // variables_order=EGPCS : transmet APP_ENV=test au serveur PHP intégré
             command: `php -d variables_order=EGPCS -S 127.0.0.1:8099 -t "${resolve(backendDir, 'public')}"`,
-            url: `${API_URL}/api/games`,
+            // Route qui ne lit pas la base : celle-ci n'est créée qu'ensuite, par global-setup.
+            // Sans token, /api/me répond 401, ce que Playwright considère comme « serveur prêt ».
+            url: `${API_URL}/api/me`,
             env: { APP_ENV: 'test' },
             reuseExistingServer: !process.env.CI,
             timeout: 60_000,
