@@ -75,12 +75,12 @@ test.describe('Connexion', () => {
 
     // Expiré : supprimé sans appeler le serveur
     await page.evaluate((t) => localStorage.setItem('catfun.token', t), fakeToken(1000));
-    await page.goto('/#/');
+    await page.goto('/#/pendu');
     await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
 
     // Pas expiré mais refusé par l'API (signature invalide)
     await page.evaluate((t) => localStorage.setItem('catfun.token', t), fakeToken(Math.floor(Date.now() / 1000) + 3600));
-    await page.goto('/#/');
+    await page.goto('/#/pendu');
     await expect(page.getByRole('alert')).toContainText('Ta session a expiré');
   });
 

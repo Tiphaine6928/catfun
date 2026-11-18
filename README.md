@@ -110,7 +110,7 @@ VITE_API_URL=http://localhost:8000
 Pages disponibles :
 - `#/login` : connexion (le token JWT est gardé dans le navigateur)
 - `#/register` : création de compte (connecte directement après l'inscription)
-- `#/` : accueil avec la liste des jeux (réservé aux utilisateurs connectés)
+- `#/` : accueil avec la liste des jeux (public : c'est la première page du site)
 - `#/pendu` : jeu du Pendu
 - `#/memoire?niveau=facile|normal|difficile` : jeu de Mémoire
 - `#/classement` : classement par jeu (public, accessible sans compte)

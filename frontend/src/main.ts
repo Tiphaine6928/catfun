@@ -26,7 +26,7 @@ startRouter({
   loginPath: '/login',
   homePath: '/',
   routes: {
-    '/': { title: 'Accueil', render: renderHome, requiresAuth: true },
+    '/': { title: 'Accueil', render: renderHome },
     '/pendu': { title: 'Pendu', render: renderPendu, requiresAuth: true },
     '/memoire': { title: 'Mémoire', render: renderMemoire, requiresAuth: true },
     '/classement': { title: 'Classement', render: renderLeaderboard },
