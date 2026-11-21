@@ -42,12 +42,14 @@ class ScoreController extends AbstractController
             'id' => $game->getId(),
             'name' => $game->getName(),
             'description' => $game->getDescription(),
+            'levels' => $game->getLevels(),
         ], $games));
     }
 
     /**
      * Classement d'un jeu : le meilleur score de chaque joueur, du plus haut au plus bas. Public.
-     * Paramètre optionnel : ?limit=10 (entre 1 et 100).
+     * Paramètres optionnels : ?limit=10 (entre 1 et 100),
+     * ?level=facile pour un jeu à niveaux (sans ce paramètre, tous les niveaux sont mélangés).
      */
     #[Route('/games/{id<\d+>}/leaderboard', name: 'games_leaderboard', methods: ['GET'])]
     public function leaderboard(int $id, Request $request): JsonResponse
@@ -62,11 +64,16 @@ class ScoreController extends AbstractController
             return $this->error(sprintf('Le paramètre "limit" doit être compris entre 1 et %d.', self::MAX_LIMIT), Response::HTTP_BAD_REQUEST);
         }
 
+        $level = $this->levelFromQuery($request, $game);
+        if ($level instanceof JsonResponse) {
+            return $level;
+        }
+
         // Rang partagé en cas d'égalité de points : 1, 2, 2, 4…
         $scores = [];
         $rank = 0;
         $previousPoints = null;
-        foreach ($this->scoreRepository->findLeaderboardForGame($game, $limit) as $position => $row) {
+        foreach ($this->scoreRepository->findLeaderboardForGame($game, $limit, $level) as $position => $row) {
             if ($row['points'] !== $previousPoints) {
                 $rank = $position + 1;
                 $previousPoints = $row['points'];
@@ -82,15 +89,16 @@ class ScoreController extends AbstractController
         }
 
         return $this->json([
-            'game' => ['id' => $game->getId(), 'name' => $game->getName()],
-            'totalPlayers' => $this->scoreRepository->countPlayersForGame($game),
+            'game' => ['id' => $game->getId(), 'name' => $game->getName(), 'levels' => $game->getLevels()],
+            'level' => $level,
+            'totalPlayers' => $this->scoreRepository->countPlayersForGame($game, $level),
             'scores' => $scores,
         ]);
     }
 
     /**
      * Enregistre un score pour l'utilisateur connecté.
-     * Corps JSON : {"gameId": 1, "points": 120}
+     * Corps JSON : {"gameId": 1, "points": 120}, plus "level" pour un jeu à niveaux (ex. "facile").
      */
     #[Route('/scores', name: 'scores_create', methods: ['POST'])]
     public function create(
@@ -111,6 +119,10 @@ class ScoreController extends AbstractController
         if (!\array_key_exists('points', $data) || !\is_int($data['points'])) {
             $errors['points'] = 'Ce champ est obligatoire et doit être un entier.';
         }
+        $level = $data['level'] ?? null;
+        if (null !== $level && !\is_string($level)) {
+            $errors['level'] = 'Ce champ doit être une chaîne de caractères.';
+        }
         if ($errors) {
             return $this->validationError($errors);
         }
@@ -120,8 +132,16 @@ class ScoreController extends AbstractController
             return $this->validationError(['gameId' => 'Ce jeu n\'existe pas.']);
         }
 
+        if ($game->hasLevels() && (null === $level || !$game->hasLevel($level))) {
+            return $this->validationError(['level' => $this->unknownLevelMessage($game)]);
+        }
+        if (!$game->hasLevels() && null !== $level) {
+            return $this->validationError(['level' => 'Ce jeu n\'a pas de niveaux.']);
+        }
+
         $score = (new Score())
             ->setPoints($data['points'])
+            ->setLevel($level)
             ->setGame($game)
             ->setPlayer($user);
 
@@ -160,19 +180,52 @@ class ScoreController extends AbstractController
 
     /**
      * Meilleur score de l'utilisateur connecté sur un jeu ("best" vaut null s'il n'y a jamais joué).
+     * Paramètre optionnel : ?level=facile pour un jeu à niveaux (sans, tous niveaux confondus).
      */
     #[Route('/me/games/{id<\d+>}/best', name: 'me_best_score', methods: ['GET'])]
-    public function myBestScore(int $id, #[CurrentUser] User $user): JsonResponse
+    public function myBestScore(int $id, Request $request, #[CurrentUser] User $user): JsonResponse
     {
         $game = $this->gameRepository->find($id);
         if (null === $game) {
             return $this->gameNotFound();
         }
 
+        $level = $this->levelFromQuery($request, $game);
+        if ($level instanceof JsonResponse) {
+            return $level;
+        }
+
         return $this->json([
             'game' => ['id' => $game->getId(), 'name' => $game->getName()],
-            'best' => $this->scoreRepository->findBestPointsForPlayer($user, $game),
+            'level' => $level,
+            'best' => $this->scoreRepository->findBestPointsForPlayer($user, $game, $level),
         ]);
+    }
+
+    /**
+     * Niveau demandé dans l'URL (?level=…) : null s'il est absent,
+     * ou une réponse 400 s'il n'existe pas pour ce jeu.
+     */
+    private function levelFromQuery(Request $request, Game $game): string|JsonResponse|null
+    {
+        if (!$request->query->has('level')) {
+            return null;
+        }
+
+        $level = $request->query->getString('level');
+        if (!$game->hasLevels()) {
+            return $this->error('Ce jeu n\'a pas de niveaux.', Response::HTTP_BAD_REQUEST);
+        }
+        if (!$game->hasLevel($level)) {
+            return $this->error($this->unknownLevelMessage($game), Response::HTTP_BAD_REQUEST);
+        }
+
+        return $level;
+    }
+
+    private function unknownLevelMessage(Game $game): string
+    {
+        return sprintf('Choisis un niveau parmi : %s.', implode(', ', $game->getLevels()));
     }
 
     private function gameNotFound(): JsonResponse
@@ -188,6 +241,7 @@ class ScoreController extends AbstractController
         $data = [
             'id' => $score->getId(),
             'points' => $score->getPoints(),
+            'level' => $score->getLevel(),
             'date' => $score->getDate()->format(\DateTimeInterface::ATOM),
         ];
 

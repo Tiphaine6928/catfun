@@ -41,9 +41,12 @@ abstract class ApiTestCase extends WebTestCase
         return $user;
     }
 
-    protected function createGame(string $name): Game
+    /**
+     * @param list<string>|null $levels niveaux de difficulté du jeu (null : aucun)
+     */
+    protected function createGame(string $name, ?array $levels = null): Game
     {
-        $game = (new Game())->setName($name)->setDescription('Jeu '.$name);
+        $game = (new Game())->setName($name)->setDescription('Jeu '.$name)->setLevels($levels);
         $this->em->persist($game);
         $this->em->flush();
 

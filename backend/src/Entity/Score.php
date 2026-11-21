@@ -9,6 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ScoreRepository::class)]
 #[ORM\Index(name: 'IDX_SCORE_GAME_POINTS', columns: ['game_id', 'points'])]
+#[ORM\Index(name: 'IDX_SCORE_GAME_LEVEL_POINTS', columns: ['game_id', 'level', 'points'])]
 class Score
 {
     #[ORM\Id]
@@ -23,6 +24,13 @@ class Score
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $date;
+
+    /**
+     * Niveau de la partie (ex. "facile"), pour les jeux qui en ont ; null sinon.
+     * Les scores du Mémoire enregistrés avant l'ajout des niveaux sont aussi à null.
+     */
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $level = null;
 
     #[ORM\ManyToOne(inversedBy: 'scores')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -64,6 +72,18 @@ class Score
     public function setDate(\DateTimeImmutable $date): static
     {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getLevel(): ?string
+    {
+        return $this->level;
+    }
+
+    public function setLevel(?string $level): static
+    {
+        $this->level = $level;
 
         return $this;
     }

@@ -1,8 +1,12 @@
 import { fetchCurrentUser, isLoggedIn } from '../auth';
-import { fetchBestScore, fetchGames, fetchLeaderboard, GAME_PAGES, type Game, type Leaderboard } from '../games/api';
+import { fetchBestScore, fetchGames, fetchLeaderboard, GAME_PAGES, levelLabel, type Game, type Leaderboard } from '../games/api';
 import { renderLayout } from '../ui/layout';
 
 const LIMIT = 20;
+/** Valeur de ?niveau= pour le classement tous niveaux confondus. */
+const ALL_LEVELS = 'tous';
+/** Niveau affiché par défaut (le même que dans le jeu), s'il existe pour ce jeu. */
+const DEFAULT_LEVEL = 'normal';
 const MEDALS = ['🥇', '🥈', '🥉'];
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -11,6 +15,8 @@ const TEMPLATE = `
   <p class="page__intro">Le meilleur score de chaque joueur. Qui sera le roi des chats ? 👑</p>
 
   <nav class="tabs" aria-label="Choisir un jeu"></nav>
+  <nav class="tabs tabs--levels" aria-label="Choisir un niveau" hidden></nav>
+  <p class="leaderboard__hint" hidden>Meilleur score de chaque joueur, tous niveaux confondus (y compris les parties jouées avant l’ajout des niveaux).</p>
 
   <div class="leaderboard" aria-live="polite" aria-busy="true">
     <p class="leaderboard__loading">Chargement du classement…</p>
@@ -21,6 +27,8 @@ export function renderLeaderboard(container: HTMLElement, params: URLSearchParam
   const page = renderLayout(container, '/classement');
   page.innerHTML = TEMPLATE;
   const tabs = page.querySelector<HTMLElement>('.tabs')!;
+  const levelTabs = page.querySelector<HTMLElement>('.tabs--levels')!;
+  const allLevelsHint = page.querySelector<HTMLElement>('.leaderboard__hint')!;
   const board = page.querySelector<HTMLElement>('.leaderboard')!;
 
   void load();
@@ -45,8 +53,45 @@ export function renderLeaderboard(container: HTMLElement, params: URLSearchParam
     const requested = games.find((g) => String(g.id) === params.get('jeu'));
     const game = requested ?? games.find((g) => g.name in GAME_PAGES) ?? games[0];
 
+    const level = chooseLevel(game, params.get('niveau'));
+
     renderTabs(games, game);
-    await renderBoard(game);
+    renderLevelTabs(game, level);
+    await renderBoard(game, level);
+  }
+
+  /** Niveau demandé dans l'URL s'il existe, "tous" → null, sinon le niveau par défaut. */
+  function chooseLevel(game: Game, requested: string | null): string | null {
+    if (game.levels.length === 0 || requested === ALL_LEVELS) {
+      return null;
+    }
+    if (requested && game.levels.includes(requested)) {
+      return requested;
+    }
+
+    return game.levels.includes(DEFAULT_LEVEL) ? DEFAULT_LEVEL : game.levels[0];
+  }
+
+  function renderLevelTabs(game: Game, selected: string | null): void {
+    levelTabs.hidden = game.levels.length === 0;
+    allLevelsHint.hidden = game.levels.length === 0 || selected !== null;
+    if (levelTabs.hidden) {
+      return;
+    }
+
+    const choices: [string, string][] = [...game.levels.map((l): [string, string] => [l, levelLabel(l)]), [ALL_LEVELS, 'Tous niveaux']];
+    levelTabs.replaceChildren(
+      ...choices.map(([value, label]) => {
+        const tab = document.createElement('a');
+        tab.className = 'tabs__tab';
+        tab.href = `#/classement?jeu=${game.id}&niveau=${value}`;
+        tab.textContent = label;
+        if (value === (selected ?? ALL_LEVELS)) {
+          tab.setAttribute('aria-current', 'page');
+        }
+        return tab;
+      }),
+    );
   }
 
   function renderTabs(games: Game[], selected: Game): void {
@@ -64,31 +109,33 @@ export function renderLeaderboard(container: HTMLElement, params: URLSearchParam
     );
   }
 
-  async function renderBoard(game: Game): Promise<void> {
+  async function renderBoard(game: Game, level: string | null): Promise<void> {
     setBusy(true);
     let leaderboard: Leaderboard;
     let me: string | null = null;
     let best: number | null = null;
     try {
       [leaderboard, me, best] = await Promise.all([
-        fetchLeaderboard(game.id, LIMIT),
+        fetchLeaderboard(game.id, LIMIT, level),
         isLoggedIn() ? fetchCurrentUser().then((u) => u.pseudo).catch(() => null) : Promise.resolve(null),
-        isLoggedIn() ? fetchBestScore(game.id).catch(() => null) : Promise.resolve(null),
+        isLoggedIn() ? fetchBestScore(game.id, level).catch(() => null) : Promise.resolve(null),
       ]);
     } catch (error) {
-      showError(error, () => void renderBoard(game));
+      showError(error, () => void renderBoard(game, level));
       return;
     }
 
     const content: HTMLElement[] = [];
-    const playPath = GAME_PAGES[game.name];
+    // Lien vers le jeu, directement au bon niveau
+    const playPath = GAME_PAGES[game.name] && (level ? `${GAME_PAGES[game.name]}?niveau=${level}` : GAME_PAGES[game.name]);
+    const where = level ? ` en ${levelLabel(level)}` : '';
 
     if (me !== null) {
-      content.push(renderMySummary(leaderboard, me, best, playPath));
+      content.push(renderMySummary(leaderboard, me, best, where, playPath));
     }
 
     if (leaderboard.scores.length === 0) {
-      const empty = paragraph('Personne n’a encore de score sur ce jeu. ', 'leaderboard__empty');
+      const empty = paragraph(level ? `Personne n’a encore de score${where}. ` : 'Personne n’a encore de score sur ce jeu. ', 'leaderboard__empty');
       empty.append(playPath ? link(`#${playPath}`, 'Sois le premier à jouer !') : 'Ce jeu arrive bientôt 🐾');
       content.push(empty);
     } else {
@@ -107,12 +154,12 @@ export function renderLeaderboard(container: HTMLElement, params: URLSearchParam
     setBusy(false);
   }
 
-  function renderMySummary(leaderboard: Leaderboard, me: string, best: number | null, playPath?: string): HTMLElement {
+  function renderMySummary(leaderboard: Leaderboard, me: string, best: number | null, where: string, playPath?: string): HTMLElement {
     const summary = document.createElement('div');
     summary.className = 'my-rank';
 
     if (best === null) {
-      summary.append(`Tu n’as pas encore de score sur ${leaderboard.game.name}. `);
+      summary.append(`Tu n’as pas encore de score sur ${leaderboard.game.name}${where}. `);
       if (playPath) {
         summary.append(link(`#${playPath}`, 'Lancer une partie'));
       }
@@ -122,7 +169,7 @@ export function renderLeaderboard(container: HTMLElement, params: URLSearchParam
     const myEntry = leaderboard.scores.find((entry) => entry.player === me);
     const record = document.createElement('strong');
     record.textContent = `${best} points`;
-    summary.append('Ton record : ', record);
+    summary.append(`Ton record${where} : `, record);
     summary.append(myEntry ? ` · ${ordinal(myEntry.rank)} sur ${leaderboard.totalPlayers}` : ` · hors du top ${leaderboard.scores.length}`);
     if (playPath) {
       summary.append(' · ', link(`#${playPath}`, 'Rejouer'));
@@ -146,7 +193,8 @@ export function renderLeaderboard(container: HTMLElement, params: URLSearchParam
       </thead>
       <tbody></tbody>
     `;
-    table.querySelector('caption')!.textContent = `Classement du jeu ${leaderboard.game.name}`;
+    table.querySelector('caption')!.textContent =
+      `Classement du jeu ${leaderboard.game.name}` + (leaderboard.level ? `, niveau ${levelLabel(leaderboard.level)}` : '');
 
     const body = table.querySelector('tbody')!;
     for (const entry of leaderboard.scores) {

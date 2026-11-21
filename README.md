@@ -137,6 +137,8 @@ Pages disponibles :
 - Score : **50 par paire + bonus de précision de 50 par paire, moins 10 par erreur**
   (le bonus ne descend jamais sous 0). Maximum : 600 en Facile, 800 en Normal, 1200 en Difficile.
   Pas de chronomètre : seul le nombre de coups compte.
+- Un classement par niveau (Facile, Normal, Difficile), plus un classement « Tous niveaux ».
+  Les parties jouées avant l'ajout des niveaux n'apparaissent que dans « Tous niveaux ».
 
 ### Intégration continue (GitHub Actions)
 
@@ -192,11 +194,11 @@ Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 
 | Méthode | Route | Description |
 |---|---|---|
-| `GET` | `/api/games` | Liste des jeux (id, nom, description) |
-| `GET` | `/api/games/{id}/leaderboard?limit=10` | Classement d'un jeu : meilleur score de chaque joueur, rang partagé en cas d'égalité, nombre total de joueurs (`limit` entre 1 et 100) |
-| 🔒 `POST` | `/api/scores` | Enregistre un score : `{"gameId": 1, "points": 120}` → 201 |
+| `GET` | `/api/games` | Liste des jeux (id, nom, description, niveaux) |
+| `GET` | `/api/games/{id}/leaderboard?limit=10&level=facile` | Classement d'un jeu : meilleur score de chaque joueur, rang partagé en cas d'égalité, nombre total de joueurs (`limit` entre 1 et 100 ; `level` facultatif, pour un jeu à niveaux) |
+| 🔒 `POST` | `/api/scores` | Enregistre un score : `{"gameId": 1, "points": 120}` → 201. Pour un jeu à niveaux (le Mémoire), ajouter `"level": "facile"`, `"normal"` ou `"difficile"` |
 | 🔒 `GET` | `/api/me/scores?game={id}` | Historique de mes scores (filtre `game` optionnel) |
-| 🔒 `GET` | `/api/me/games/{id}/best` | Mon meilleur score sur un jeu (`null` si jamais joué) |
+| 🔒 `GET` | `/api/me/games/{id}/best?level=facile` | Mon meilleur score sur un jeu (`null` si jamais joué ; `level` facultatif) |
 
 Erreurs renvoyées en JSON : `400` (JSON ou paramètre invalide), `401` (token absent ou invalide),
 `404` (jeu inexistant), `422` (données invalides, détail par champ dans `errors`).

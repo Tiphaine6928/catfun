@@ -76,7 +76,7 @@ export function renderMemoire(container: HTMLElement, params: URLSearchParams): 
 
   scores
     .game()
-    .then((game) => $<HTMLAnchorElement>('.leaderboard-link').setAttribute('href', `#/classement?jeu=${game.id}`))
+    .then((game) => $<HTMLAnchorElement>('.leaderboard-link').setAttribute('href', `#/classement?jeu=${game.id}&niveau=${level}`))
     .catch((error: unknown) => {
       alert.textContent = error instanceof Error ? error.message : 'Impossible de charger le jeu.';
       alert.hidden = false;
@@ -231,7 +231,7 @@ export function renderMemoire(container: HTMLElement, params: URLSearchParams): 
     resultTitle.textContent = errors === 0 ? 'Parfait, aucune erreur ! 😻' : 'Bravo, toutes les paires sont trouvées ! 🎉';
     resultDetail.textContent = `${totalPairs(state)} paires en ${state.moves} coups (${errors} erreur${errors > 1 ? 's' : ''}).`;
     resultScore.textContent = `Score : ${points} points (50 × ${totalPairs(state)} paires + bonus de précision de ${points - 50 * totalPairs(state)})`;
-    void scores.save(points);
+    void scores.save(points, level);
     announce(`${resultTitle.textContent} ${resultDetail.textContent}`);
     resultTitle.focus();
   }

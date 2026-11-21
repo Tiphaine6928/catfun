@@ -103,8 +103,10 @@ test.describe('Mémoire', () => {
 
     await expect(page.getByRole('heading', { name: 'Parfait, aucune erreur ! 😻' })).toBeFocused();
     await expect(page.locator('.pendu__result-score')).toContainText('Score : 600 points');
-    await expect(page.locator('.score-save')).toContainText('Score enregistré ✓');
-    expect(await bestScore(request, user, 'Mémoire')).toBe(600);
+    await expect(page.locator('.score-save')).toHaveText('Score enregistré ✓ Nouveau record en Facile : 600 points !');
+    expect(await bestScore(request, user, 'Mémoire', 'facile')).toBe(600);
+    expect(await bestScore(request, user, 'Mémoire', 'normal')).toBeNull();
+    await expect(page.getByRole('link', { name: 'Voir le classement' })).toHaveAttribute('href', /#\/classement\?jeu=\d+&niveau=facile$/);
 
     await page.getByRole('button', { name: 'Rejouer' }).click();
     await expect(stats(page)).toHaveText('Paires : 0 / 6 · Coups : 0 · Erreurs : 0');
@@ -124,7 +126,8 @@ test.describe('Mémoire', () => {
 
     await expect(page.getByRole('heading', { name: /^Bravo/ })).toBeVisible();
     await expect(page.locator('.game-result__detail')).toHaveText('8 paires en 10 coups (2 erreurs).');
-    expect(await bestScore(request, user, 'Mémoire')).toBe(400 + 400 - 20);
+    expect(await bestScore(request, user, 'Mémoire', 'normal')).toBe(400 + 400 - 20);
+    await expect(page.locator('.score-save')).toContainText('Nouveau record en Normal');
   });
 
   test('niveaux : Difficile sur 6 colonnes, niveau inconnu → Normal', async ({ page }) => {

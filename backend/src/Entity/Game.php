@@ -23,6 +23,15 @@ class Game
     private ?string $description = null;
 
     /**
+     * Niveaux de difficulté du jeu (ex. ["facile", "normal", "difficile"]), ou null s'il n'en a pas.
+     * Quand un jeu a des niveaux, chaque score doit indiquer le sien.
+     *
+     * @var list<string>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $levels = null;
+
+    /**
      * @var Collection<int, Score>
      */
     #[ORM\OneToMany(targetEntity: Score::class, mappedBy: 'game')]
@@ -68,5 +77,33 @@ class Game
     public function getScores(): Collection
     {
         return $this->scores;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getLevels(): array
+    {
+        return $this->levels ?? [];
+    }
+
+    /**
+     * @param list<string>|null $levels
+     */
+    public function setLevels(?array $levels): static
+    {
+        $this->levels = $levels ? array_values($levels) : null;
+
+        return $this;
+    }
+
+    public function hasLevels(): bool
+    {
+        return [] !== $this->getLevels();
+    }
+
+    public function hasLevel(string $level): bool
+    {
+        return \in_array($level, $this->getLevels(), true);
     }
 }

@@ -4,12 +4,25 @@ export interface Game {
   id: number;
   name: string;
   description: string;
+  /** Niveaux de difficulté (ex. ["facile", "normal", "difficile"]) ; vide si le jeu n'en a pas. */
+  levels: string[];
 }
 
 export interface SavedScore {
   id: number;
   points: number;
+  level: string | null;
   date: string;
+}
+
+/** Nom affiché d'un niveau ("facile" → "Facile"). */
+export function levelLabel(level: string): string {
+  return level.charAt(0).toUpperCase() + level.slice(1);
+}
+
+/** Paramètre d'URL pour un niveau facultatif. */
+function levelQuery(level: string | null | undefined, separator: '?' | '&'): string {
+  return level ? `${separator}level=${encodeURIComponent(level)}` : '';
 }
 
 let gamesCache: Promise<Game[]> | null = null;
@@ -34,12 +47,14 @@ export async function findGame(name: string): Promise<Game> {
   return game;
 }
 
-export function saveScore(gameId: number, points: number): Promise<SavedScore> {
-  return apiFetch<SavedScore>('/api/scores', { method: 'POST', body: { gameId, points } });
+/** Enregistre un score ; `level` est obligatoire pour un jeu à niveaux. */
+export function saveScore(gameId: number, points: number, level?: string): Promise<SavedScore> {
+  return apiFetch<SavedScore>('/api/scores', { method: 'POST', body: level ? { gameId, points, level } : { gameId, points } });
 }
 
-export async function fetchBestScore(gameId: number): Promise<number | null> {
-  const { best } = await apiFetch<{ best: number | null }>(`/api/me/games/${gameId}/best`);
+/** Meilleur score du joueur connecté, à un niveau donné ou tous niveaux confondus. */
+export async function fetchBestScore(gameId: number, level?: string | null): Promise<number | null> {
+  const { best } = await apiFetch<{ best: number | null }>(`/api/me/games/${gameId}/best${levelQuery(level, '?')}`);
 
   return best;
 }
@@ -53,14 +68,16 @@ export interface LeaderboardEntry {
 }
 
 export interface Leaderboard {
-  game: { id: number; name: string };
+  game: { id: number; name: string; levels: string[] };
+  /** Niveau du classement, null pour tous niveaux confondus. */
+  level: string | null;
   totalPlayers: number;
   scores: LeaderboardEntry[];
 }
 
-/** Classement public d'un jeu : le meilleur score de chaque joueur. */
-export function fetchLeaderboard(gameId: number, limit = 20): Promise<Leaderboard> {
-  return apiFetch<Leaderboard>(`/api/games/${gameId}/leaderboard?limit=${limit}`, { auth: false });
+/** Classement public d'un jeu : le meilleur score de chaque joueur (à un niveau donné, ou tous niveaux). */
+export function fetchLeaderboard(gameId: number, limit = 20, level?: string | null): Promise<Leaderboard> {
+  return apiFetch<Leaderboard>(`/api/games/${gameId}/leaderboard?limit=${limit}${levelQuery(level, '&')}`, { auth: false });
 }
 
 /** Page de chaque jeu jouable (les autres sont "bientôt disponibles"). */

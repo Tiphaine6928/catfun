@@ -55,16 +55,19 @@ export async function gameId(request: APIRequestContext, name: string): Promise<
   return game!.id;
 }
 
-export async function addScore(request: APIRequestContext, user: TestUser, gameName: string, points: number): Promise<void> {
+/** Enregistre un score via l'API ; `level` est obligatoire pour le Mémoire. */
+export async function addScore(request: APIRequestContext, user: TestUser, gameName: string, points: number, level?: string): Promise<void> {
   const response = await request.post(`${API_URL}/api/scores`, {
     headers: { Authorization: `Bearer ${user.token}` },
-    data: { gameId: await gameId(request, gameName), points },
+    data: { gameId: await gameId(request, gameName), points, ...(level ? { level } : {}) },
   });
   expect(response.status(), await response.text()).toBe(201);
 }
 
-export async function bestScore(request: APIRequestContext, user: TestUser, gameName: string): Promise<number | null> {
-  const response = await request.get(`${API_URL}/api/me/games/${await gameId(request, gameName)}/best`, {
+/** Meilleur score d'un joueur, à un niveau donné ou tous niveaux confondus. */
+export async function bestScore(request: APIRequestContext, user: TestUser, gameName: string, level?: string): Promise<number | null> {
+  const query = level ? `?level=${level}` : '';
+  const response = await request.get(`${API_URL}/api/me/games/${await gameId(request, gameName)}/best${query}`, {
     headers: { Authorization: `Bearer ${user.token}` },
   });
 
