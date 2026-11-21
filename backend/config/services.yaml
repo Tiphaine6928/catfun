@@ -22,3 +22,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Hasard des jeux : imprévisible en production…
+    App\Game\Randomizer: '@App\Game\SecureRandomizer'
+
+when@test:
+    services:
+        # … prévisible en test, pour des parties reproductibles (voir PredictableRandomizer)
+        App\Game\Randomizer: '@App\Game\PredictableRandomizer'

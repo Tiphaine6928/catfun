@@ -1,5 +1,6 @@
 import { devices, expect, type APIRequestContext, type Page } from '@playwright/test';
-import { API_URL } from '../playwright.config';
+import { execFileSync } from 'node:child_process';
+import { API_URL, BACKEND_DIR } from '../playwright.config';
 
 export { API_URL };
 
@@ -55,13 +56,28 @@ export async function gameId(request: APIRequestContext, name: string): Promise<
   return game!.id;
 }
 
-/** Enregistre un score via l'API ; `level` est obligatoire pour le Mémoire. */
-export async function addScore(request: APIRequestContext, user: TestUser, gameName: string, points: number, level?: string): Promise<void> {
-  const response = await request.post(`${API_URL}/api/scores`, {
-    headers: { Authorization: `Bearer ${user.token}` },
-    data: { gameId: await gameId(request, gameName), points, ...(level ? { level } : {}) },
-  });
-  expect(response.status(), await response.text()).toBe(201);
+/**
+ * Enregistre un score directement dans la base de test.
+ * (Par l'API, un score ne s'obtient qu'en gagnant une partie jouée par le serveur.)
+ * Les valeurs passent en paramètres de commande : aucun souci de guillemets.
+ */
+export async function addScore(_request: APIRequestContext, user: TestUser, gameName: string, points: number, level?: string): Promise<void> {
+  if (!Number.isInteger(points)) {
+    throw new Error(`points doit être un entier : ${points}`);
+  }
+  const sql =
+    'INSERT INTO score (player_id, game_id, points, level, date) ' +
+    `SELECT u.id, g.id, ${points}, ${level ? quote(level) : 'NULL'}, NOW() FROM user u, game g ` +
+    `WHERE u.email = ${quote(user.email)} AND g.name = ${quote(gameName)}`;
+  execFileSync('php', ['bin/console', 'dbal:run-sql', '--env=test', '--no-interaction', sql], { cwd: BACKEND_DIR, stdio: 'pipe' });
+}
+
+/** Chaîne SQL : seuls lettres, chiffres, accents, @ . _ - sont acceptés (valeurs de test). */
+function quote(value: string): string {
+  if (!/^[\p{L}\p{N}@._-]+$/u.test(value)) {
+    throw new Error(`Valeur de test inattendue : ${value}`);
+  }
+  return `'${value}'`;
 }
 
 /** Meilleur score d'un joueur, à un niveau donné ou tous niveaux confondus. */
@@ -72,13 +88,6 @@ export async function bestScore(request: APIRequestContext, user: TestUser, game
   });
 
   return (await response.json()).best;
-}
-
-/** Rend le tirage aléatoire prévisible (Pendu : premier mot = MOUSTACHES). */
-export async function fixRandom(page: Page, value = 0): Promise<void> {
-  await page.addInitScript((v) => {
-    Math.random = () => v;
-  }, value);
 }
 
 /** Simule un serveur injoignable pour les appels à l'API commençant par `path`. */

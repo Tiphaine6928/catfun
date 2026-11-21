@@ -41,7 +41,7 @@ final class UserControllerTest extends ApiTestCase
     {
         $user = $this->createUser('alice@cat.fun', 'joueur_1');
         $game = $this->createGame('Pendu');
-        $this->requestJson('POST', '/api/scores', ['gameId' => $game->getId(), 'points' => 10], $user);
+        $this->addScore($user, $game, 10);
 
         $this->requestJson('PATCH', '/api/me', ['pseudo' => 'Minou'], $user);
         $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard');

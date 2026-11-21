@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\Api;
 
 use App\Entity\Game;
+use App\Entity\Score;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -51,6 +52,22 @@ abstract class ApiTestCase extends WebTestCase
         $this->em->flush();
 
         return $game;
+    }
+
+    /**
+     * Enregistre un score directement en base. Par l'API, un score ne peut être obtenu
+     * qu'en gagnant une partie : les tests du classement créent donc leurs scores ici.
+     */
+    protected function addScore(User $player, Game $game, int $points, ?string $date = null, ?string $level = null): Score
+    {
+        $score = (new Score())->setPlayer($player)->setGame($game)->setPoints($points)->setLevel($level);
+        if (null !== $date) {
+            $score->setDate(new \DateTimeImmutable($date));
+        }
+        $this->em->persist($score);
+        $this->em->flush();
+
+        return $score;
     }
 
     /**

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { bestScore, createUser, cutApi, fixRandom, loginWithToken, restoreApi, type TestUser } from './helpers';
+import { API_URL, bestScore, createUser, cutApi, loginWithToken, restoreApi, type TestUser } from './helpers';
 
 /** Le mot affiché, "_" pour une lettre cachée. */
 const shownWord = (page: Page) =>
@@ -12,16 +12,19 @@ test.describe('Pendu', () => {
 
   test.beforeEach(async ({ page, request }) => {
     user = await createUser(request);
-    await fixRandom(page); // premier mot : MOUSTACHES, puis RONRONNEMENT
+    // En test, le serveur choisit toujours MOUSTACHES pour un nouveau joueur, puis RONRONNEMENT
     await loginWithToken(page, user);
     await page.goto('/#/pendu');
     await expect(page.getByRole('heading', { name: 'Pendu', level: 1 })).toBeVisible();
+    // La partie est créée par le serveur : on attend qu'elle soit affichée avant de jouer
+    await expect(page.locator('.pendu__board')).toHaveAttribute('aria-busy', 'false');
+    await expect(page.locator('.pendu__word .cell')).toHaveCount(10);
   });
 
   test('début de partie : mot caché, neuf vies, 26 lettres', async ({ page }) => {
     await expect(page).toHaveTitle('Pendu · CatFun');
     await expect(page.getByRole('link', { name: 'Pendu' })).toHaveAttribute('aria-current', 'page');
-    expect(await shownWord(page)).toBe('__________');
+    await expect.poll(() => shownWord(page)).toBe('__________');
     await expect(lives(page)).toHaveText('9 vies restantes');
     await expect(page.getByRole('group', { name: 'Lettres' }).getByRole('button')).toHaveCount(26);
   });
@@ -35,16 +38,17 @@ test.describe('Pendu', () => {
     await expect(page.locator('[data-announce]')).toContainText('Raté, pas de Z');
 
     await key(page, 'S').click();
-    expect(await shownWord(page)).toBe('___S_____S');
+    await expect.poll(() => shownWord(page)).toBe('___S_____S');
 
     await page.keyboard.press('s'); // déjà jouée : gratuit
     await page.keyboard.press('Control+m'); // raccourci : ignoré
+    await page.waitForTimeout(300); // laisse le temps à une éventuelle réponse (il ne doit pas y en avoir)
     await expect(lives(page)).toHaveText('8 vies restantes');
-    expect(await shownWord(page)).toBe('___S_____S');
+    await expect.poll(() => shownWord(page)).toBe('___S_____S');
 
     // Une touche accentuée compte comme la lettre de base
     await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'é' })));
-    expect(await shownWord(page)).toBe('___S____ES');
+    await expect.poll(() => shownWord(page)).toBe('___S____ES');
   });
 
   test('victoire : score calculé et enregistré, puis Rejouer', async ({ page, request }) => {
@@ -60,7 +64,7 @@ test.describe('Pendu', () => {
     await expect(page.getByRole('link', { name: 'Voir le classement' })).toHaveAttribute('href', /#\/classement\?jeu=\d+$/);
 
     await page.getByRole('button', { name: 'Rejouer' }).click();
-    expect(await shownWord(page)).toBe('____________'); // RONRONNEMENT : le mot précédent est exclu
+    await expect.poll(() => shownWord(page)).toBe('____________'); // RONRONNEMENT : le mot précédent est exclu
     await expect(lives(page)).toHaveText('9 vies restantes');
   });
 
@@ -68,7 +72,7 @@ test.describe('Pendu', () => {
     for (const letter of 'bdfgijklp') await page.keyboard.press(letter);
 
     await expect(page.getByRole('heading', { name: /^Perdu/ })).toBeVisible();
-    expect(await shownWord(page)).toBe('MOUSTACHES');
+    await expect.poll(() => shownWord(page)).toBe('MOUSTACHES');
     await expect(page.locator('.cell--missed')).toHaveCount(10);
     await expect(lives(page)).toHaveText('0 vie restante');
     await expect(page.locator('.pendu__cat')).toHaveText('😿');
@@ -87,17 +91,39 @@ test.describe('Pendu', () => {
     await expect(key(page, 'A')).toBeEnabled();
   });
 
-  test('échec d’enregistrement du score puis « Réessayer »', async ({ page, request }) => {
-    await cutApi(page, '/api/scores');
-    for (const letter of 'moustache') await page.keyboard.press(letter);
-
-    await expect(page.locator('.score-save')).toContainText('n’a pas pu être enregistré');
-    expect(await bestScore(request, user, 'Pendu')).toBeNull();
+  test('connexion perdue pendant un coup : message, puis on peut rejouer la lettre', async ({ page }) => {
+    await cutApi(page, '/api/sessions/');
+    await page.keyboard.press('m');
+    await expect(page.getByRole('alert')).toContainText('La lettre n’a pas pu être envoyée');
+    await expect.poll(() => shownWord(page)).toBe('__________');
 
     await restoreApi(page);
-    await page.getByRole('button', { name: 'Réessayer l’enregistrement' }).click();
-    await expect(page.locator('.score-save')).toContainText('Score enregistré ✓');
-    expect(await bestScore(request, user, 'Pendu')).toBe(100 + 20 * 9 + 5 * 9);
+    await page.keyboard.press('m');
+    await expect(page.getByRole('alert')).toBeHidden();
+    await expect.poll(() => shownWord(page)).toBe('M_________');
+  });
+
+  test('anti-triche : le mot n’est jamais envoyé avant la fin, et un score ne peut pas être posté', async ({ page, request }) => {
+    const responses: string[] = [];
+    page.on('response', async (response) => {
+      if (response.url().startsWith(`${API_URL}/api/`)) {
+        responses.push(await response.text().catch(() => ''));
+      }
+    });
+    // Nouvelle partie (2e du joueur : RONRONNEMENT), en surveillant toutes les réponses de l'API
+    await page.getByRole('button', { name: 'Nouveau mot' }).click();
+    await expect(page.locator('.pendu__word .cell')).toHaveCount(12);
+    for (const letter of 'ron') await page.keyboard.press(letter);
+    await expect.poll(() => shownWord(page)).toBe('RONRONN___N_');
+    expect(responses.join('\n')).not.toContain('RONRONNEMENT');
+
+    // Envoyer un score inventé ne marche plus
+    const cheat = await request.post(`${API_URL}/api/scores`, {
+      headers: { Authorization: `Bearer ${user.token}` },
+      data: { gameId: 1, points: 999999 },
+    });
+    expect([404, 405]).toContain(cheat.status());
+    expect(await bestScore(request, user, 'Pendu')).toBeNull();
   });
 
   test('le clavier ne joue plus une fois la page quittée', async ({ page }) => {

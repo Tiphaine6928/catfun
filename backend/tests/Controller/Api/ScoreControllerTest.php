@@ -17,57 +17,16 @@ final class ScoreControllerTest extends ApiTestCase
         self::assertSame(['Mémoire', 'Pendu'], array_column($data, 'name'));
     }
 
-    public function testCreateScoreRequiresAToken(): void
+    public function testAScoreCanNoLongerBePostedDirectly(): void
     {
-        $game = $this->createGame('Pendu');
-
-        $this->requestJson('POST', '/api/scores', ['gameId' => $game->getId(), 'points' => 10]);
-
-        self::assertResponseStatusCodeSame(401);
-    }
-
-    public function testCreateScoreForTheConnectedUser(): void
-    {
+        // Anti-triche : un score ne s'obtient qu'en gagnant une partie jouée par le serveur
         $alice = $this->createUser('alice@cat.fun');
         $game = $this->createGame('Pendu');
 
-        $data = $this->requestJson('POST', '/api/scores', ['gameId' => $game->getId(), 'points' => 120], $alice);
+        $this->requestJson('POST', '/api/scores', ['gameId' => $game->getId(), 'points' => 999999], $alice);
 
-        self::assertResponseStatusCodeSame(201);
-        self::assertSame(120, $data['points']);
-        self::assertSame('Pendu', $data['game']['name']);
-
-        $this->em->clear();
-        $score = $this->em->getRepository(Score::class)->find($data['id']);
-        self::assertSame('alice@cat.fun', $score->getPlayer()->getEmail());
-    }
-
-    /**
-     * @dataProvider invalidScoreProvider
-     */
-    public function testCreateScoreRejectsInvalidData(callable $body, int $status, ?string $field): void
-    {
-        $alice = $this->createUser('alice@cat.fun');
-        $game = $this->createGame('Pendu');
-
-        $data = $this->requestJson('POST', '/api/scores', $body($game->getId()), $alice);
-
-        self::assertResponseStatusCodeSame($status);
-        if (null !== $field) {
-            self::assertArrayHasKey($field, $data['errors']);
-        }
+        self::assertContains($this->client->getResponse()->getStatusCode(), [404, 405]);
         self::assertSame(0, $this->em->getRepository(Score::class)->count([]));
-    }
-
-    public static function invalidScoreProvider(): iterable
-    {
-        yield 'JSON invalide' => [fn (int $id) => '{pas du json', 400, null];
-        yield 'pas un objet' => [fn (int $id) => '42', 400, null];
-        yield 'points manquants' => [fn (int $id) => ['gameId' => $id], 422, 'points'];
-        yield 'points en texte' => [fn (int $id) => ['gameId' => $id, 'points' => '10'], 422, 'points'];
-        yield 'points négatifs' => [fn (int $id) => ['gameId' => $id, 'points' => -5], 422, 'points'];
-        yield 'jeu manquant' => [fn (int $id) => ['points' => 10], 422, 'gameId'];
-        yield 'jeu inexistant' => [fn (int $id) => ['gameId' => $id + 999, 'points' => 10], 422, 'gameId'];
     }
 
     public function testLeaderboardIsPublicAndSorted(): void
@@ -77,10 +36,10 @@ final class ScoreControllerTest extends ApiTestCase
         $pendu = $this->createGame('Pendu');
         $memoire = $this->createGame('Mémoire');
 
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 50], $alice);
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 90], $bob);
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 70], $alice);
-        $this->requestJson('POST', '/api/scores', ['gameId' => $memoire->getId(), 'points' => 999], $alice);
+        $this->addScore($alice, $pendu, 50);
+        $this->addScore($bob, $pendu, 90);
+        $this->addScore($alice, $pendu, 70);
+        $this->addScore($alice, $memoire, 999);
 
         $data = $this->requestJson('GET', '/api/games/'.$pendu->getId().'/leaderboard');
 
@@ -151,7 +110,7 @@ final class ScoreControllerTest extends ApiTestCase
     {
         $user = $this->createUser('tiphaine.chat@example.com', 'MinouDu69');
         $game = $this->createGame('Pendu');
-        $this->requestJson('POST', '/api/scores', ['gameId' => $game->getId(), 'points' => 10], $user);
+        $this->addScore($user, $game, 10);
 
         $data = $this->requestJson('GET', '/api/games/'.$game->getId().'/leaderboard');
 
@@ -174,9 +133,9 @@ final class ScoreControllerTest extends ApiTestCase
         $pendu = $this->createGame('Pendu');
         $memoire = $this->createGame('Mémoire');
 
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 10], $alice);
-        $this->requestJson('POST', '/api/scores', ['gameId' => $memoire->getId(), 'points' => 20], $alice);
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 30], $bob);
+        $this->addScore($alice, $pendu, 10);
+        $this->addScore($alice, $memoire, 20);
+        $this->addScore($bob, $pendu, 30);
 
         $data = $this->requestJson('GET', '/api/me/scores', as: $alice);
         self::assertResponseIsSuccessful();
@@ -201,24 +160,11 @@ final class ScoreControllerTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         self::assertNull($data['best']);
 
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 40], $alice);
-        $this->requestJson('POST', '/api/scores', ['gameId' => $pendu->getId(), 'points' => 75], $alice);
+        $this->addScore($alice, $pendu, 40);
+        $this->addScore($alice, $pendu, 75);
 
         $data = $this->requestJson('GET', '/api/me/games/'.$pendu->getId().'/best', as: $alice);
         self::assertSame(75, $data['best']);
-    }
-
-    private function addScore(\App\Entity\User $player, \App\Entity\Game $game, int $points, string $date): Score
-    {
-        $score = (new Score())
-            ->setPlayer($player)
-            ->setGame($game)
-            ->setPoints($points)
-            ->setDate(new \DateTimeImmutable($date));
-        $this->em->persist($score);
-        $this->em->flush();
-
-        return $score;
     }
 
     /** Jour d'obtention du score, pour départager les égalités dans un ordre connu. */

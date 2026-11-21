@@ -8,12 +8,6 @@ export interface Game {
   levels: string[];
 }
 
-export interface SavedScore {
-  id: number;
-  points: number;
-  level: string | null;
-  date: string;
-}
 
 /** Nom affiché d'un niveau ("facile" → "Facile"). */
 export function levelLabel(level: string): string {
@@ -45,11 +39,6 @@ export async function findGame(name: string): Promise<Game> {
   }
 
   return game;
-}
-
-/** Enregistre un score ; `level` est obligatoire pour un jeu à niveaux. */
-export function saveScore(gameId: number, points: number, level?: string): Promise<SavedScore> {
-  return apiFetch<SavedScore>('/api/scores', { method: 'POST', body: level ? { gameId, points, level } : { gameId, points } });
 }
 
 /** Meilleur score du joueur connecté, à un niveau donné ou tous niveaux confondus. */
@@ -85,3 +74,92 @@ export const GAME_PAGES: Readonly<Record<string, string>> = {
   Pendu: '/pendu',
   Mémoire: '/memoire',
 };
+
+// ---------------------------------------------------------------------------
+// Parties jouées par le serveur (anti-triche)
+// Le serveur choisit le mot / mélange les cartes, applique chaque coup et enregistre le score.
+// ---------------------------------------------------------------------------
+
+export type SessionStatus = 'playing' | 'won' | 'lost';
+
+/** Score calculé et enregistré par le serveur à la victoire. */
+export interface SessionScore {
+  points: number;
+  best: number | null;
+  isRecord: boolean;
+}
+
+export interface GameSession<State> {
+  id: string;
+  game: { id: number; name: string };
+  level: string | null;
+  status: SessionStatus;
+  state: State;
+  score: SessionScore | null;
+  /** Résultat du dernier coup (absent au démarrage). */
+  result?: string;
+}
+
+export interface PenduCell {
+  /** Caractère affiché, null pour une lettre pas encore trouvée. */
+  char: string | null;
+  /** false pour une espace ou un tiret. */
+  letter: boolean;
+  revealed: boolean;
+  /** Lettre non trouvée, révélée à la défaite. */
+  missed: boolean;
+}
+
+export interface PenduState {
+  cells: PenduCell[];
+  lives: number;
+  maxLives: number;
+  guessed: string[];
+  wrong: string[];
+  status: SessionStatus;
+  /** Le mot, seulement une fois la partie finie. */
+  word: string | null;
+}
+
+export interface MemoireCard {
+  index: number;
+  /** Symbole, seulement pour une carte retournée. */
+  symbol: { emoji: string; label: string } | null;
+  matched: boolean;
+  faceUp: boolean;
+}
+
+export interface MemoireState {
+  level: string;
+  cards: MemoireCard[];
+  pairsFound: number;
+  totalPairs: number;
+  moves: number;
+  mistakes: number;
+  status: SessionStatus;
+}
+
+/** Commence une partie ; `level` est obligatoire pour un jeu à niveaux. */
+export function startSession<State>(gameId: number, level?: string): Promise<GameSession<State>> {
+  return apiFetch<GameSession<State>>(`/api/games/${gameId}/sessions`, { method: 'POST', body: level ? { level } : {} });
+}
+
+/** Pendu : propose une lettre. */
+export function guessLetter(sessionId: string, letter: string): Promise<GameSession<PenduState>> {
+  return apiFetch<GameSession<PenduState>>(`/api/sessions/${sessionId}/guess`, { method: 'POST', body: { letter } });
+}
+
+/** Mémoire : retourne une carte. */
+export function flipCard(sessionId: string, index: number): Promise<GameSession<MemoireState>> {
+  return apiFetch<GameSession<MemoireState>>(`/api/sessions/${sessionId}/flip`, { method: 'POST', body: { index } });
+}
+
+/** Message de fin de partie sur le score enregistré par le serveur. */
+export function scoreMessage(score: SessionScore, level?: string | null): string {
+  const where = level ? ` en ${levelLabel(level)}` : '';
+
+  return score.isRecord
+    ? `Score enregistré ✓ Nouveau record${where} : ${score.points} points !`
+    : `Score enregistré ✓ Ton record${where} : ${score.best ?? score.points} points.`;
+}
+

@@ -7,14 +7,12 @@ use App\Entity\Score;
 use App\Entity\User;
 use App\Repository\GameRepository;
 use App\Repository\ScoreRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api', name: 'api_')]
 class ScoreController extends AbstractController
@@ -94,66 +92,6 @@ class ScoreController extends AbstractController
             'totalPlayers' => $this->scoreRepository->countPlayersForGame($game, $level),
             'scores' => $scores,
         ]);
-    }
-
-    /**
-     * Enregistre un score pour l'utilisateur connecté.
-     * Corps JSON : {"gameId": 1, "points": 120}, plus "level" pour un jeu à niveaux (ex. "facile").
-     */
-    #[Route('/scores', name: 'scores_create', methods: ['POST'])]
-    public function create(
-        Request $request,
-        #[CurrentUser] User $user,
-        EntityManagerInterface $entityManager,
-        ValidatorInterface $validator,
-    ): JsonResponse {
-        $data = $this->decodeJsonBody($request);
-        if ($data instanceof JsonResponse) {
-            return $data;
-        }
-
-        $errors = [];
-        if (!isset($data['gameId']) || !\is_int($data['gameId'])) {
-            $errors['gameId'] = 'Ce champ est obligatoire et doit être un entier.';
-        }
-        if (!\array_key_exists('points', $data) || !\is_int($data['points'])) {
-            $errors['points'] = 'Ce champ est obligatoire et doit être un entier.';
-        }
-        $level = $data['level'] ?? null;
-        if (null !== $level && !\is_string($level)) {
-            $errors['level'] = 'Ce champ doit être une chaîne de caractères.';
-        }
-        if ($errors) {
-            return $this->validationError($errors);
-        }
-
-        $game = $this->gameRepository->find($data['gameId']);
-        if (null === $game) {
-            return $this->validationError(['gameId' => 'Ce jeu n\'existe pas.']);
-        }
-
-        if ($game->hasLevels() && (null === $level || !$game->hasLevel($level))) {
-            return $this->validationError(['level' => $this->unknownLevelMessage($game)]);
-        }
-        if (!$game->hasLevels() && null !== $level) {
-            return $this->validationError(['level' => 'Ce jeu n\'a pas de niveaux.']);
-        }
-
-        $score = (new Score())
-            ->setPoints($data['points'])
-            ->setLevel($level)
-            ->setGame($game)
-            ->setPlayer($user);
-
-        $violations = $validator->validate($score);
-        if (\count($violations) > 0) {
-            return $this->violationsError($violations);
-        }
-
-        $entityManager->persist($score);
-        $entityManager->flush();
-
-        return $this->json($this->serializeScore($score, withGame: true), Response::HTTP_CREATED);
     }
 
     /**

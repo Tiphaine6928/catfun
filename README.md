@@ -127,7 +127,7 @@ Pages disponibles :
   la lettre E révèle aussi É, È, Ê.
 - On joue à la souris, au doigt ou avec le clavier de l'ordinateur.
 - Score d'une victoire : **100 + 20 par vie restante + 5 par lettre différente du mot**,
-  enregistré automatiquement. Une défaite ne rapporte pas de points.
+  calculé et enregistré par le serveur. Une défaite ne rapporte pas de points.
 
 ### Jeu de Mémoire
 - Retrouver toutes les paires de cartes (chats, pelote de laine, souris…).
@@ -139,6 +139,22 @@ Pages disponibles :
   Pas de chronomètre : seul le nombre de coups compte.
 - Un classement par niveau (Facile, Normal, Difficile), plus un classement « Tous niveaux ».
   Les parties jouées avant l'ajout des niveaux n'apparaissent que dans « Tous niveaux ».
+
+### Anti-triche
+
+Les parties sont jouées **par le serveur**, jamais par le navigateur :
+
+- le serveur choisit le mot du Pendu et mélange les cartes du Mémoire, avec un hasard imprévisible
+  (`random_int`) ; la liste de mots et les symboles ne sont pas envoyés au navigateur ;
+- le navigateur envoie seulement les coups (une lettre, une carte) et ne reçoit que ce qu'il a le droit
+  de voir : le mot n'est révélé qu'à la fin, une carte seulement quand on la retourne ;
+- le score est calculé et enregistré par le serveur à la victoire. Il n'existe plus de route pour envoyer
+  un score : `POST /api/scores` a été supprimée ;
+- chaque coup est joué dans une transaction, partie verrouillée : deux coups simultanés sont appliqués
+  l'un après l'autre et un score n'est enregistré qu'une fois.
+
+Les règles sont dans `backend/src/Game/` (`PenduEngine`, `MemoireEngine`). En test, le hasard est
+prévisible (`PredictableRandomizer`) pour que les parties soient reproductibles.
 
 ### Intégration continue (GitHub Actions)
 
@@ -176,8 +192,6 @@ Avant les tests, la **base de test** `catfun_test` est recréée par les migrati
 la base de développement n'est jamais touchée. Chaque test crée ses propres comptes.
 
 - `npm run test:e2e:ui` ouvre l'interface de Playwright pour suivre les tests pas à pas.
-- Pour viser un backend déjà lancé (par exemple Docker), sans réinitialiser sa base :
-  `E2E_API_URL=http://localhost:8082 npm run test:e2e`
 - En cas d'échec, une capture d'écran est enregistrée dans `frontend/test-results/`.
 
 ### API
@@ -190,13 +204,25 @@ Les routes marquées 🔒 demandent l'en-tête `Authorization: Bearer <token>`.
 - 🔒 `GET /api/me` → utilisateur connecté (email et pseudo)
 - 🔒 `PATCH /api/me` avec `{"pseudo": "NouveauPseudo"}` → change le pseudo (seul champ modifiable)
 
+**Parties (jouées par le serveur)**
+
+| Méthode | Route | Description |
+|---|---|---|
+| 🔒 `POST` | `/api/games/{id}/sessions` | Commence une partie → 201. Pour le Mémoire : `{"level": "facile"}` (`normal`, `difficile`) |
+| 🔒 `GET` | `/api/sessions/{id}` | État visible d'une partie (pour la reprendre) |
+| 🔒 `POST` | `/api/sessions/{id}/guess` | Pendu : propose une lettre, `{"letter": "e"}` |
+| 🔒 `POST` | `/api/sessions/{id}/flip` | Mémoire : retourne une carte, `{"index": 3}` |
+
+Chaque réponse contient l'état visible de la partie (`state`), le résultat du coup (`result`) et,
+à la victoire, le score enregistré (`score` : points, meilleur score, nouveau record ou non).
+Une partie terminée n'accepte plus de coup (`409`), et seul son joueur peut la voir ou la jouer.
+
 **Jeux et scores**
 
 | Méthode | Route | Description |
 |---|---|---|
 | `GET` | `/api/games` | Liste des jeux (id, nom, description, niveaux) |
 | `GET` | `/api/games/{id}/leaderboard?limit=10&level=facile` | Classement d'un jeu : meilleur score de chaque joueur, rang partagé en cas d'égalité, nombre total de joueurs (`limit` entre 1 et 100 ; `level` facultatif, pour un jeu à niveaux) |
-| 🔒 `POST` | `/api/scores` | Enregistre un score : `{"gameId": 1, "points": 120}` → 201. Pour un jeu à niveaux (le Mémoire), ajouter `"level": "facile"`, `"normal"` ou `"difficile"` |
 | 🔒 `GET` | `/api/me/scores?game={id}` | Historique de mes scores (filtre `game` optionnel) |
 | 🔒 `GET` | `/api/me/games/{id}/best?level=facile` | Mon meilleur score sur un jeu (`null` si jamais joué ; `level` facultatif) |
 

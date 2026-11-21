@@ -6,12 +6,17 @@ const stats = (page: Page) => page.locator('.memoire__stats');
 const columns = (page: Page) =>
   page.locator('.memoire__grid').evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
 
-/** Les deux positions de chaque symbole (le test lit les faces cachées dans la page). */
+/**
+ * Les deux positions de chaque paire. Les faces ne sont plus dans la page (anti-triche) :
+ * on s'appuie sur l'environnement de test, où le serveur ne mélange pas les cartes
+ * (paires côte à côte : 0-1, 2-3, 4-5…).
+ */
 async function pairs(page: Page): Promise<number[][]> {
-  const symbols = await page.locator('.card-tile__front').allTextContents();
-  const byEmoji = new Map<string, number[]>();
-  symbols.forEach((emoji, index) => byEmoji.set(emoji, [...(byEmoji.get(emoji) ?? []), index]));
-  return [...byEmoji.values()];
+  // La partie est créée par le serveur : on attend que les cartes soient affichées
+  await expect(page.locator('.memoire__grid')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.card-tile').first()).toBeVisible();
+  const count = await page.locator('.card-tile').count();
+  return Array.from({ length: count / 2 }, (_, i) => [2 * i, 2 * i + 1]);
 }
 
 /** Trouve toutes les paires restantes sans erreur. */
@@ -31,14 +36,27 @@ test.describe('Mémoire', () => {
     await loginWithToken(page, user);
   });
 
-  test('niveau Normal par défaut : 16 cartes face cachée, chaque symbole deux fois', async ({ page }) => {
+  test('niveau Normal par défaut : 16 cartes face cachée', async ({ page }) => {
     await page.goto('/#/memoire');
     await expect(page).toHaveTitle('Mémoire · CatFun');
     await expect(page.getByRole('link', { name: 'Normal · 8 paires' })).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('.card-tile')).toHaveCount(16);
-    expect((await pairs(page)).every((p) => p.length === 2)).toBe(true);
     await expect(stats(page)).toHaveText('Paires : 0 / 8 · Coups : 0 · Erreurs : 0');
     await expect(card(page, 0)).toHaveAttribute('aria-label', 'Carte 1 : face cachée');
+  });
+
+  test('anti-triche : aucune face n’est dans la page avant d’être retournée', async ({ page }) => {
+    await page.goto('/#/memoire');
+    await expect(page.locator('.card-tile')).toHaveCount(16);
+    await expect(stats(page)).toHaveText('Paires : 0 / 8 · Coups : 0 · Erreurs : 0');
+
+    const faces = await page.locator('.card-tile__front').allTextContents();
+    expect(faces.every((face) => face === '')).toBe(true);
+    expect(await page.content()).not.toMatch(/😺|🧶|🐭|chat souriant/);
+
+    await card(page, 0).click();
+    await expect(card(page, 0).locator('.card-tile__front')).not.toHaveText('');
+    expect((await page.locator('.card-tile__front').allTextContents()).filter((face) => face !== '')).toHaveLength(1);
   });
 
   test('erreurs, paires et retour automatique des cartes', async ({ page }) => {
