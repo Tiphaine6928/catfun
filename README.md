@@ -76,6 +76,13 @@ Au premier démarrage, MySQL met jusqu'à une minute à s'initialiser : le backe
 Si un conteneur reste à l'état `Created` (`docker compose ps -a`), un port est sans doute déjà utilisé
 sur ta machine : le message d'erreur s'affiche dans la sortie de `docker compose up`.
 
+**Performances sous Windows.** `vendor/` et `var/` (cache et logs Symfony) restent dans des volumes
+Docker, hors du dossier partagé avec Windows, et OPcache est activé : sans ça, chaque requête
+prend plusieurs secondes. Pour aller encore plus vite, place le projet dans le système de fichiers
+de WSL (par exemple `~/catfun`) plutôt que dans `C:\` ou OneDrive. Conséquence : `vendor/` et les
+logs n'apparaissent plus dans ton dossier ; pour lire les logs :
+`docker compose exec backend tail -n 50 var/log/dev.log`.
+
 ### Lancer le backend sans Docker
 ```bash
 cd backend

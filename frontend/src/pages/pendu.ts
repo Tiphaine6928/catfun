@@ -167,6 +167,16 @@ export function renderPendu(container: HTMLElement): () => void {
       return;
     }
 
+    // Retour immédiat : la touche se grise tout de suite, sans attendre la réponse du serveur
+    const key = keys.get(input.toUpperCase());
+    if (key) {
+      if (key.disabled) {
+        return;
+      }
+      key.disabled = true;
+      key.classList.add('key--pending');
+    }
+
     void queue(() => guessLetter(current.id, input))
       .then((next) => {
         // Réponse arrivée après un « Nouveau mot » ou après avoir quitté la page : on l'ignore
@@ -181,7 +191,14 @@ export function renderPendu(container: HTMLElement): () => void {
           finish();
         }
       })
-      .catch((error: unknown) => showError(error, 'La lettre n’a pas pu être envoyée.'));
+      .catch((error: unknown) => {
+        // La lettre n'est pas partie : on remet le clavier dans l'état connu du serveur
+        if (!left && session?.id === current.id) {
+          update();
+        }
+        showError(error, 'La lettre n’a pas pu être envoyée.');
+      })
+      .finally(() => key?.classList.remove('key--pending'));
   }
 
   function messageFor(outcome: string | undefined, letter: string, state: PenduState): string {

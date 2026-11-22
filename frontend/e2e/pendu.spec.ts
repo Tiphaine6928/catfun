@@ -92,6 +92,25 @@ test.describe('Pendu', () => {
     await expect(key(page, 'A')).toBeEnabled();
   });
 
+  test('la touche réagit tout de suite, même si le serveur est lent', async ({ page }) => {
+    // Le serveur met 1,5 s à répondre
+    await page.route(
+      (url) => url.href.includes('/guess'),
+      async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await route.continue();
+      },
+    );
+    await key(page, 'M').click();
+    await expect(key(page, 'M')).toBeDisabled({ timeout: 300 });
+    await expect(key(page, 'M')).toHaveClass(/key--pending/, { timeout: 300 });
+
+    // Puis la réponse arrive : lettre révélée, touche marquée juste
+    await expect.poll(() => shownWord(page)).toBe('M_________');
+    await expect(key(page, 'M')).toHaveClass(/key--correct/);
+    await expect(key(page, 'M')).not.toHaveClass(/key--pending/);
+  });
+
   test('connexion perdue pendant un coup : message, puis on peut rejouer la lettre', async ({ page }) => {
     await cutApi(page, '/api/sessions/');
     await page.keyboard.press('m');

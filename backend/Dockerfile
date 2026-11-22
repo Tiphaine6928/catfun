@@ -3,8 +3,11 @@ FROM php:8.4-fpm
 # Installation des dépendances nécessaires
 RUN apt-get update && apt-get install -y \
     git unzip libicu-dev libzip-dev zip \
-    && docker-php-ext-install intl pdo pdo_mysql zip \
+    && docker-php-ext-install intl opcache pdo pdo_mysql zip \
     && rm -rf /var/lib/apt/lists/*
+
+# OPcache et cache des chemins : voir docker/php.ini
+COPY docker/php.ini /usr/local/etc/php/conf.d/zz-catfun.ini
 
 # Installation de Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

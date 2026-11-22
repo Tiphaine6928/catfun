@@ -591,6 +591,12 @@ a.game-card:hover .game-card__cta {
   cursor: default;
 }
 
+/* Lettre envoyée, en attente de la réponse du serveur */
+.key--pending {
+  background: var(--color-border);
+  border-color: var(--color-primary);
+}
+
 .key--correct {
   background: var(--color-primary);
   border-color: var(--color-primary);
