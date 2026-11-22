@@ -1,9 +1,10 @@
+import logoUrl from '../assets/logo-catfun.webp';
 import { fetchCurrentUser, isLoggedIn, logout } from '../auth';
 import { navigate } from '../router';
 
 const TEMPLATE = `
   <header class="topbar">
-    <a class="topbar__brand" href="#/">🐱 CatFun</a>
+    <a class="topbar__brand" href="#/"><img class="topbar__logo" src="${logoUrl}" alt="CatFun" width="720" height="515"></a>
     <nav class="topbar__nav" aria-label="Navigation principale">
       <a href="#/">Accueil</a>
       <a href="#/pendu">Pendu</a>
