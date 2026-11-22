@@ -16,7 +16,7 @@ const TEMPLATE = `
 `;
 
 const USER_TEMPLATE = `
-  <span class="topbar__pseudo" title="Connecté">…</span>
+  <a class="topbar__pseudo" href="#/profil" title="Mon profil">…</a>
   <button type="button" class="button button--ghost button--small logout">Se déconnecter</button>
 `;
 
@@ -51,12 +51,15 @@ export function renderLayout(container: HTMLElement, current: string): HTMLEleme
   }
 
   user.innerHTML = USER_TEMPLATE;
+  if (current === '/profil') {
+    user.querySelector('.topbar__pseudo')!.setAttribute('aria-current', 'page');
+  }
   container.querySelector('.logout')!.addEventListener('click', () => {
     logout();
     navigate('/login');
   });
 
-  const pseudo = container.querySelector<HTMLSpanElement>('.topbar__pseudo')!;
+  const pseudo = container.querySelector<HTMLAnchorElement>('.topbar__pseudo')!;
   fetchCurrentUser()
     .then((user) => {
       // textContent : le pseudo n'est jamais interprété comme du HTML
@@ -67,4 +70,12 @@ export function renderLayout(container: HTMLElement, current: string): HTMLEleme
     });
 
   return container.querySelector<HTMLElement>('.page')!;
+}
+
+/** Met à jour le pseudo affiché dans la barre du haut (après un changement de pseudo). */
+export function setTopbarPseudo(pseudo: string): void {
+  const link = document.querySelector<HTMLAnchorElement>('.topbar__pseudo');
+  if (link) {
+    link.textContent = pseudo;
+  }
 }

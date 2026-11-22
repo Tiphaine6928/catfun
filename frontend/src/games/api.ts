@@ -163,3 +163,36 @@ export function scoreMessage(score: SessionScore, level?: string | null): string
     : `Score enregistré ✓ Ton record${where} : ${score.best ?? score.points} points.`;
 }
 
+
+// ---------------------------------------------------------------------------
+// Profil
+// ---------------------------------------------------------------------------
+
+export interface GameStats {
+  game: { id: number; name: string; levels: string[] };
+  /** Meilleur score par niveau (un seul enregistrement, level = null, pour un jeu sans niveaux). */
+  records: { level: string | null; best: number | null }[];
+  /** Parties terminées (gagnées ou perdues) et gagnées. */
+  played: number;
+  won: number;
+}
+
+export interface HistoryEntry {
+  id: number;
+  points: number;
+  level: string | null;
+  date: string;
+  game: { id: number; name: string };
+}
+
+/** Records et parties jouées de l'utilisateur connecté, pour chaque jeu. */
+export async function fetchMyStats(): Promise<GameStats[]> {
+  const { games } = await apiFetch<{ games: GameStats[] }>('/api/me/stats');
+
+  return games;
+}
+
+/** Derniers scores de l'utilisateur connecté, du plus récent au plus ancien. */
+export function fetchMyHistory(limit = 10): Promise<HistoryEntry[]> {
+  return apiFetch<HistoryEntry[]>(`/api/me/scores?limit=${limit}`);
+}

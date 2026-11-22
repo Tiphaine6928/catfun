@@ -903,3 +903,100 @@ a.game-card:hover {
   margin: 0 0 1rem;
   font-size: 1.3rem;
 }
+
+/* ---------- Profil ---------- */
+.topbar__pseudo {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.topbar__pseudo:hover,
+.topbar__pseudo[aria-current='page'] {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+.profile-section {
+  margin-bottom: 2.5rem;
+}
+
+.profile-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.3rem;
+}
+
+.profile__email {
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+}
+
+.profile__form {
+  max-width: 420px;
+}
+
+.profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile__actions .button--primary {
+  width: auto;
+  margin-top: 0;
+}
+
+.profile__saved {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.records {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.record-card {
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) * 1.25);
+}
+
+.record-card h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.record-card .muted {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.record-card__records {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.record-card__records dt {
+  color: var(--color-muted);
+}
+
+.record-card__records dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.record-card__links {
+  margin: 0;
+}

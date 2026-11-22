@@ -6,6 +6,7 @@ use App\Entity\Game;
 use App\Entity\Score;
 use App\Entity\User;
 use App\Repository\GameRepository;
+use App\Repository\GameSessionRepository;
 use App\Repository\ScoreRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,7 @@ class ScoreController extends AbstractController
     public function __construct(
         private readonly GameRepository $gameRepository,
         private readonly ScoreRepository $scoreRepository,
+        private readonly GameSessionRepository $sessionRepository,
     ) {
     }
 
@@ -96,7 +98,7 @@ class ScoreController extends AbstractController
 
     /**
      * Historique des scores de l'utilisateur connecté, du plus récent au plus ancien.
-     * Paramètre optionnel : ?game=1 pour filtrer sur un jeu.
+     * Paramètres optionnels : ?game=1 pour filtrer sur un jeu, ?limit=10 (entre 1 et 100).
      */
     #[Route('/me/scores', name: 'me_scores', methods: ['GET'])]
     public function myScores(Request $request, #[CurrentUser] User $user): JsonResponse
@@ -110,10 +112,46 @@ class ScoreController extends AbstractController
             }
         }
 
+        $limit = null;
+        if ($request->query->has('limit')) {
+            $limit = $request->query->getInt('limit');
+            if ($limit < 1 || $limit > self::MAX_LIMIT) {
+                return $this->error(sprintf('Le paramètre "limit" doit être compris entre 1 et %d.', self::MAX_LIMIT), Response::HTTP_BAD_REQUEST);
+            }
+        }
+
         return $this->json(array_map(
             fn (Score $score) => $this->serializeScore($score, withGame: true),
-            $this->scoreRepository->findByPlayer($user, $game),
+            $this->scoreRepository->findByPlayer($user, $game, $limit),
         ));
+    }
+
+    /**
+     * Statistiques de l'utilisateur connecté, pour sa page de profil :
+     * pour chaque jeu, son meilleur score (par niveau pour un jeu à niveaux),
+     * et le nombre de parties terminées et gagnées.
+     */
+    #[Route('/me/stats', name: 'me_stats', methods: ['GET'])]
+    public function myStats(#[CurrentUser] User $user): JsonResponse
+    {
+        $counts = $this->sessionRepository->countFinishedByGame($user);
+
+        $games = [];
+        foreach ($this->gameRepository->findBy([], ['name' => 'ASC']) as $game) {
+            $records = [];
+            foreach ($game->hasLevels() ? $game->getLevels() : [null] as $level) {
+                $records[] = ['level' => $level, 'best' => $this->scoreRepository->findBestPointsForPlayer($user, $game, $level)];
+            }
+
+            $games[] = [
+                'game' => ['id' => $game->getId(), 'name' => $game->getName(), 'levels' => $game->getLevels()],
+                'records' => $records,
+                'played' => $counts[$game->getId()]['played'] ?? 0,
+                'won' => $counts[$game->getId()]['won'] ?? 0,
+            ];
+        }
+
+        return $this->json(['games' => $games]);
     }
 
     /**

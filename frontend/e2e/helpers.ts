@@ -103,3 +103,19 @@ export async function restoreApi(page: Page): Promise<void> {
 /** Écran de téléphone (taille, tactile, densité) sans changer de navigateur. */
 const { defaultBrowserType: _browser, ...pixel7 } = devices['Pixel 7'];
 export const MOBILE = pixel7;
+
+/**
+ * Gagne une partie de Pendu via l'API, sans erreur. En test, le premier mot d'un joueur
+ * est MOUSTACHES (hasard prévisible) : score = 100 + 20 × 9 + 5 × 9 = 325.
+ */
+export async function winPenduViaApi(request: APIRequestContext, user: TestUser): Promise<void> {
+  const headers = { Authorization: `Bearer ${user.token}` };
+  const start = await request.post(`${API_URL}/api/games/${await gameId(request, 'Pendu')}/sessions`, { headers, data: {} });
+  expect(start.status(), await start.text()).toBe(201);
+  const { id } = await start.json();
+  let last: { status: string } = { status: 'playing' };
+  for (const letter of 'MOUSTACHE') {
+    last = await (await request.post(`${API_URL}/api/sessions/${id}/guess`, { headers, data: { letter } })).json();
+  }
+  expect(last.status).toBe('won');
+}

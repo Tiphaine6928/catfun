@@ -9,13 +9,12 @@ import {
   setLoading,
   setupPasswordToggle,
   showAlert,
+  PSEUDO_MAX,
+  PSEUDO_MIN,
   validateEmail,
+  validatePseudo,
 } from '../ui/form';
 
-/** Mêmes règles que le backend (entité User et route /api/register). */
-const PSEUDO_MIN = 3;
-const PSEUDO_MAX = 30;
-const PSEUDO_PATTERN = /^[\p{L}\p{N}_-]+$/u;
 const PASSWORD_MIN = 6;
 
 const TEMPLATE = `
@@ -134,19 +133,6 @@ export function renderRegister(container: HTMLElement, params: URLSearchParams):
   }
 }
 
-function validatePseudo(value: string): string | null {
-  if (!value) {
-    return 'Merci de choisir un pseudo.';
-  }
-  if ([...value].length < PSEUDO_MIN) {
-    return `Le pseudo doit faire au moins ${PSEUDO_MIN} caractères.`;
-  }
-  if ([...value].length > PSEUDO_MAX) {
-    return `Le pseudo doit faire au plus ${PSEUDO_MAX} caractères.`;
-  }
-
-  return PSEUDO_PATTERN.test(value) ? null : 'Le pseudo ne peut contenir que des lettres, des chiffres, « _ » et « - ».';
-}
 
 function validatePassword(value: string): string | null {
   if (!value) {

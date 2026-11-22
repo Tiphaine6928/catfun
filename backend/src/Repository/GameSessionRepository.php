@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Game;
 use App\Entity\GameSession;
 use App\Entity\User;
+use App\Game\GameEngine;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -43,5 +44,36 @@ class GameSessionRepository extends ServiceEntityRepository
         $session = $this->find($id, LockMode::PESSIMISTIC_WRITE);
 
         return null !== $session && $session->getPlayer()->getId() === $player->getId() ? $session : null;
+    }
+
+    /**
+     * Parties terminées du joueur, par jeu : ['<id du jeu>' => ['played' => 12, 'won' => 7]].
+     * Une partie abandonnée (jamais terminée) n'est pas comptée.
+     *
+     * @return array<int, array{played: int, won: int}>
+     */
+    public function countFinishedByGame(User $player): array
+    {
+        $rows = $this->createQueryBuilder('s')
+            ->select('IDENTITY(s.game) AS game, s.status AS status, COUNT(s.id) AS total')
+            ->andWhere('s.player = :player')
+            ->andWhere('s.status != :playing')
+            ->setParameter('player', $player)
+            ->setParameter('playing', GameEngine::PLAYING)
+            ->groupBy('s.game, s.status')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $game = (int) $row['game'];
+            $counts[$game] ??= ['played' => 0, 'won' => 0];
+            $counts[$game]['played'] += (int) $row['total'];
+            if (GameEngine::WON === $row['status']) {
+                $counts[$game]['won'] += (int) $row['total'];
+            }
+        }
+
+        return $counts;
     }
 }

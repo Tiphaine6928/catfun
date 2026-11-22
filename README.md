@@ -120,6 +120,7 @@ Pages disponibles :
 - `#/pendu` : jeu du Pendu
 - `#/memoire?niveau=facile|normal|difficile` : jeu de Mémoire
 - `#/classement` : classement par jeu (public, accessible sans compte)
+- `#/profil` : mon profil (changer de pseudo, records et parties jouées par jeu, dernières parties gagnées) ; on y accède en cliquant sur son pseudo
 
 ### Jeu du Pendu
 - Le chat a **neuf vies** : 9 erreurs autorisées.
@@ -239,7 +240,8 @@ Une partie terminée n'accepte plus de coup (`409`), et seul son joueur peut la 
 |---|---|---|
 | `GET` | `/api/games` | Liste des jeux (id, nom, description, niveaux) |
 | `GET` | `/api/games/{id}/leaderboard?limit=10&level=facile` | Classement d'un jeu : meilleur score de chaque joueur, rang partagé en cas d'égalité, nombre total de joueurs (`limit` entre 1 et 100 ; `level` facultatif, pour un jeu à niveaux) |
-| 🔒 `GET` | `/api/me/scores?game={id}` | Historique de mes scores (filtre `game` optionnel) |
+| 🔒 `GET` | `/api/me/scores?game={id}&limit=10` | Historique de mes scores, du plus récent au plus ancien (`game` et `limit` facultatifs) |
+| 🔒 `GET` | `/api/me/stats` | Pour chaque jeu : mon record (par niveau pour le Mémoire), mes parties terminées et gagnées |
 | 🔒 `GET` | `/api/me/games/{id}/best?level=facile` | Mon meilleur score sur un jeu (`null` si jamais joué ; `level` facultatif) |
 
 Erreurs renvoyées en JSON : `400` (JSON ou paramètre invalide), `401` (token absent ou invalide),

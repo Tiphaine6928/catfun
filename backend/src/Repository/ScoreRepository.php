@@ -84,15 +84,21 @@ class ScoreRepository extends ServiceEntityRepository
      *
      * @return Score[]
      */
-    public function findByPlayer(User $player, ?Game $game = null): array
+    public function findByPlayer(User $player, ?Game $game = null, ?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('s')
+            ->addSelect('g')
+            ->join('s.game', 'g')
             ->andWhere('s.player = :player')
             ->setParameter('player', $player)
-            ->orderBy('s.date', 'DESC');
+            ->orderBy('s.date', 'DESC')
+            ->addOrderBy('s.id', 'DESC');
 
         if (null !== $game) {
             $qb->andWhere('s.game = :game')->setParameter('game', $game);
+        }
+        if (null !== $limit) {
+            $qb->setMaxResults($limit);
         }
 
         return $qb->getQuery()->getResult();

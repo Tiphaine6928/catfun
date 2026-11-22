@@ -73,3 +73,24 @@ export function validateEmail(input: HTMLInputElement): string | null {
 export function safeRedirect(redirect: string | null, excluded: string[] = []): string {
   return redirect && /^\/[\w\-/]*$/.test(redirect) && !excluded.includes(redirect) ? redirect : '/';
 }
+
+/** Règles du pseudo : les mêmes que le backend (entité User). */
+export const PSEUDO_MIN = 3;
+export const PSEUDO_MAX = 30;
+const PSEUDO_PATTERN = /^[\p{L}\p{N}_-]+$/u;
+
+/** Message d'erreur pour un pseudo (null si valide). Les espaces autour sont ignorées. */
+export function validatePseudo(input: string): string | null {
+  const value = input.trim();
+  if (!value) {
+    return 'Merci de choisir un pseudo.';
+  }
+  if ([...value].length < PSEUDO_MIN) {
+    return `Le pseudo doit faire au moins ${PSEUDO_MIN} caractères.`;
+  }
+  if ([...value].length > PSEUDO_MAX) {
+    return `Le pseudo doit faire au plus ${PSEUDO_MAX} caractères.`;
+  }
+
+  return PSEUDO_PATTERN.test(value) ? null : 'Le pseudo ne peut contenir que des lettres, des chiffres, « _ » et « - ».';
+}

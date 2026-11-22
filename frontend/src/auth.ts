@@ -49,6 +49,17 @@ export function logout(): void {
   currentUser = null;
 }
 
+/**
+ * Change le pseudo de l'utilisateur connecté (PATCH /api/me).
+ * Lève ApiError 422 avec le message du serveur (pseudo déjà pris…).
+ */
+export async function updatePseudo(pseudo: string): Promise<CurrentUser> {
+  const { user, pseudo: saved } = await apiFetch<CurrentUser>('/api/me', { method: 'PATCH', body: { pseudo } });
+  currentUser = { user, pseudo: saved };
+
+  return currentUser;
+}
+
 /** Utilisateur connecté (mis en cache après le premier appel). */
 export async function fetchCurrentUser(): Promise<CurrentUser> {
   currentUser ??= await apiFetch<CurrentUser>('/api/me');
