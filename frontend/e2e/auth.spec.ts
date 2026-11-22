@@ -153,7 +153,7 @@ test.describe('Inscription', () => {
     await expect(page.getByRole('alert')).toBeHidden();
   });
 
-  test('inscription réussie : connecté directement, puis connexion avec le compte créé', async ({ page }) => {
+  test('inscription réussie : message, puis connexion avec l’email déjà rempli', async ({ page }) => {
     const id = uniqueId();
     const user = { email: `felix-${id}@cat.fun`, pseudo: `Félix-${id}`, password: 'miaou123' };
     await page.goto('/#/register');
@@ -163,12 +163,38 @@ test.describe('Inscription', () => {
     await page.getByLabel('Mot de passe', { exact: true }).fill(user.password);
     await page.getByRole('button', { name: 'Créer mon compte' }).click();
 
+    // Pas encore connecté : on arrive sur la connexion avec un message
+    await expect(page).toHaveURL(/#\/login\?inscrit=1$/);
+    await expect(page.getByRole('alert')).toHaveText('Ton inscription a bien été prise en compte ✓ Connecte-toi pour commencer à jouer.');
+    await expect(page.getByLabel('Email')).toHaveValue(user.email);
+    await expect(page.getByLabel('Mot de passe', { exact: true })).toBeFocused();
+    expect(await page.evaluate(() => localStorage.getItem('catfun.token'))).toBeNull();
+
+    await page.getByLabel('Mot de passe', { exact: true }).fill(user.password);
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+
     await expect(page).toHaveURL(/#\/$/);
     await expect(page.locator('.topbar__pseudo')).toHaveText(user.pseudo);
+    await expect(page.locator('.flash').getByRole('status')).toHaveText(`Connexion réussie ✓ Bienvenue, ${user.pseudo} !`);
 
-    await page.getByRole('button', { name: 'Se déconnecter' }).click();
-    await loginWithForm(page, user);
-    await expect(page.locator('.topbar__pseudo')).toHaveText(user.pseudo);
+    // Le message ne s'affiche qu'une fois
+    await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Classement' }).click();
+    await expect(page.locator('.flash')).toBeHidden();
+  });
+
+  test('l’inscription garde la page demandée jusqu’à la connexion', async ({ page }) => {
+    const id = uniqueId();
+    const user = { email: `minou-${id}@cat.fun`, pseudo: `Minou-${id}`, password: 'miaou123' };
+    await page.goto('/#/register?redirect=%2Fmemoire');
+    await page.getByLabel('Email').fill(user.email);
+    await page.getByLabel('Pseudo').fill(user.pseudo);
+    await page.getByLabel('Mot de passe', { exact: true }).fill(user.password);
+    await page.getByRole('button', { name: 'Créer mon compte' }).click();
+
+    await expect(page).toHaveURL(/#\/login\?inscrit=1&redirect=%2Fmemoire$/);
+    await page.getByLabel('Mot de passe', { exact: true }).fill(user.password);
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+    await expect(page).toHaveURL(/#\/memoire$/);
   });
 });
 

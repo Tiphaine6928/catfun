@@ -1,7 +1,7 @@
 import logoUrl from '../assets/logo-catfun.webp';
 import { fetchCurrentUser, isLoggedIn, logout } from '../auth';
 import { navigate } from '../router';
-import { takeFlash } from './flash';
+import { takeFlashes } from './flash';
 
 const TEMPLATE = `
   <header class="topbar">
@@ -42,13 +42,18 @@ export function renderLayout(container: HTMLElement, current: string): HTMLEleme
     }
   }
 
-  // Message laissé par la page précédente (ex. score enregistré après la connexion)
-  const flash = takeFlash();
-  if (flash) {
+  // Messages laissés par la page précédente (ex. connexion réussie, score enregistré)
+  const flashes = takeFlashes();
+  if (flashes.length > 0) {
     const box = container.querySelector<HTMLDivElement>('.flash')!;
     box.hidden = false;
-    box.innerHTML = `<p class="alert alert--${flash.kind}" role="${flash.kind === 'error' ? 'alert' : 'status'}"></p>`;
-    box.firstElementChild!.textContent = flash.message;
+    for (const flash of flashes) {
+      const message = document.createElement('p');
+      message.className = `alert alert--${flash.kind}`;
+      message.setAttribute('role', flash.kind === 'error' ? 'alert' : 'status');
+      message.textContent = flash.message;
+      box.append(message);
+    }
   }
 
   const user = container.querySelector<HTMLDivElement>('.topbar__user')!;

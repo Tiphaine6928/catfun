@@ -26,7 +26,7 @@ async function currentUser(page: Page, user: Omit<TestUser, 'token'>): Promise<T
 }
 
 test.describe('Jouer sans compte', () => {
-  test('Pendu gagné, puis inscription : le score est enregistré', async ({ page }) => {
+  test('Pendu gagné, puis inscription et connexion : le score est enregistré', async ({ page }) => {
     await openPendu(page);
     await expect(page.getByRole('banner').getByRole('link', { name: 'Se connecter' })).toBeVisible();
 
@@ -45,8 +45,14 @@ test.describe('Jouer sans compte', () => {
     await page.getByLabel('Mot de passe', { exact: true }).fill(user.password);
     await page.getByRole('button', { name: 'Créer mon compte' }).click();
 
+    // Puis connexion (email déjà rempli)
+    await expect(page).toHaveURL(/#\/login\?inscrit=1&redirect=%2Fpendu$/);
+    await page.getByLabel('Mot de passe', { exact: true }).fill(user.password);
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+
     // Retour sur le jeu, avec la confirmation
     await expect(page).toHaveURL(/#\/pendu$/);
+    await expect(page.getByRole('status').filter({ hasText: 'Connexion réussie' })).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: 'Score enregistré' })).toHaveText(
       'Score enregistré ✓ 325 points au Pendu, c’est ton nouveau record !',
     );

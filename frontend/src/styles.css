@@ -385,6 +385,11 @@ a.button--ghost:hover {
   padding: 1.5rem 1rem 0;
 }
 
+.flash {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .flash .alert {
   margin: 0;
 }

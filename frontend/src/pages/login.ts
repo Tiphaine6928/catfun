@@ -1,7 +1,7 @@
 import { login, loginErrorMessage } from '../auth';
 import { claimPendingScore } from '../games/pending-score';
 import { navigate } from '../router';
-import { setFlash } from '../ui/flash';
+import { addFlash } from '../ui/flash';
 import {
   clearErrorOnInput,
   hideAlert,
@@ -50,6 +50,13 @@ const TEMPLATE = `
   </main>
 `;
 
+/** Email du compte qui vient d'être créé, pour pré-remplir le formulaire de connexion. */
+let registeredEmail: string | null = null;
+
+export function rememberRegisteredEmail(email: string): void {
+  registeredEmail = email;
+}
+
 export function renderLogin(container: HTMLElement, params: URLSearchParams): void {
   container.innerHTML = TEMPLATE;
 
@@ -69,6 +76,13 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
   if (params.get('expired') === '1') {
     showAlert(alert, 'Ta session a expiré, reconnecte-toi.', 'info');
   }
+  if (params.get('inscrit') === '1') {
+    showAlert(alert, 'Ton inscription a bien été prise en compte ✓ Connecte-toi pour commencer à jouer.', 'info');
+    if (registeredEmail) {
+      email.value = registeredEmail;
+    }
+  }
+  registeredEmail = null;
 
   setupPasswordToggle(password, toggle);
   clearErrorOnInput(email, password);
@@ -89,11 +103,12 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
 
     setLoading(submit, true, 'Se connecter', 'Connexion…');
     try {
-      await login(email.value.trim(), password.value);
+      const user = await login(email.value.trim(), password.value);
+      addFlash({ message: `Connexion réussie ✓ Bienvenue, ${user.pseudo} !`, kind: 'info' });
       // Partie gagnée juste avant sans être connecté : on enregistre son score maintenant
       const claimed = await claimPendingScore();
       if (claimed) {
-        setFlash({ message: claimed.message, kind: claimed.ok ? 'info' : 'error' });
+        addFlash({ message: claimed.message, kind: claimed.ok ? 'info' : 'error' });
       }
       navigate(safeRedirect(params.get('redirect'), ['/login', '/register']));
     } catch (error) {
@@ -105,5 +120,6 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
     }
   });
 
-  email.focus();
+  // Juste après l'inscription, l'email est déjà rempli : on passe directement au mot de passe
+  (email.value ? password : email).focus();
 }

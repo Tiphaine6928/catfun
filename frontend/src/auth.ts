@@ -29,19 +29,18 @@ export async function login(email: string, password: string): Promise<CurrentUse
 }
 
 /**
- * Inscription : crée le compte et connecte directement l'utilisateur.
+ * Inscription : crée le compte. L'utilisateur se connecte ensuite avec ses identifiants
+ * (le token renvoyé par l'API n'est pas utilisé).
  * Lève ApiError 422 avec les erreurs par champ (email, pseudo, password).
  */
 export async function register(email: string, pseudo: string, password: string): Promise<CurrentUser> {
-  const { token, ...user } = await apiFetch<{ token: string } & CurrentUser>('/api/register', {
+  const { user, pseudo: saved } = await apiFetch<CurrentUser>('/api/register', {
     method: 'POST',
     body: { email, pseudo, password },
     auth: false,
   });
-  saveToken(token);
-  currentUser = user;
 
-  return user;
+  return { user, pseudo: saved };
 }
 
 export function logout(): void {
