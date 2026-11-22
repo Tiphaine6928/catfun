@@ -156,6 +156,22 @@ Les parties sont jouées **par le serveur**, jamais par le navigateur :
 Les règles sont dans `backend/src/Game/` (`PenduEngine`, `MemoireEngine`). En test, le hasard est
 prévisible (`PredictableRandomizer`) pour que les parties soient reproductibles.
 
+### Limites de tentatives
+
+Pour freiner les robots (mots de passe essayés en masse, comptes créés à la chaîne) :
+
+| Action | Limite par défaut | Variable (`backend/.env.local`) |
+|---|---|---|
+| Connexion ratée, même email et même adresse IP | 5 par quart d'heure | `LOGIN_MAX_ATTEMPTS_PER_ACCOUNT` |
+| Connexion ratée, même adresse IP (tous emails) | 25 par quart d'heure | `LOGIN_MAX_ATTEMPTS_PER_IP` |
+| Inscription (même refusée), même adresse IP | 10 par heure | `REGISTRATION_MAX_ATTEMPTS` |
+
+Au-delà, l'API répond `429 Too Many Requests` avec un message en français (« Réessaie dans 15 minutes. »)
+et l'en-tête `Retry-After`. Seules les connexions ratées comptent ; elles expirent au bout du quart d'heure.
+
+Si le site est un jour placé derrière un autre proxy (hébergeur, CDN), il faudra déclarer ce proxy
+(`framework.trusted_proxies`) : sinon toutes les requêtes sembleraient venir de la même adresse IP.
+
 ### Intégration continue (GitHub Actions)
 
 À chaque push et à chaque pull request, GitHub lance automatiquement trois tâches

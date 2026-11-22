@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -33,7 +34,21 @@ class RegistrationController extends AbstractController
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
         JWTTokenManagerInterface $jwtManager,
+        RateLimiterFactory $registrationLimiter,
     ): JsonResponse {
+        // Au plus 10 tentatives par heure depuis une même adresse IP (config/packages/rate_limiter.yaml).
+        // Chaque tentative compte, même refusée : sinon un robot pourrait tester en masse
+        // quels emails ont déjà un compte.
+        $limit = $registrationLimiter->create($request->getClientIp() ?? 'inconnue')->consume();
+        if (!$limit->isAccepted()) {
+            $wait = max(1, $limit->getRetryAfter()->getTimestamp() - time());
+            $minutes = max(1, (int) round($wait / 60)); // 3 601 s → « 60 minutes », pas 61
+
+            return $this->json([
+                'message' => sprintf('Trop de tentatives d\'inscription. Réessaie dans %d minute%s.', $minutes, $minutes > 1 ? 's' : ''),
+            ], Response::HTTP_TOO_MANY_REQUESTS, ['Retry-After' => (string) $wait]);
+        }
+
         $data = $this->decodeJsonBody($request);
         if ($data instanceof JsonResponse) {
             return $data;

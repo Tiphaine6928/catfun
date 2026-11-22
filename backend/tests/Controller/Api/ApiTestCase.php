@@ -24,6 +24,9 @@ abstract class ApiTestCase extends WebTestCase
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
 
+        // Les compteurs de tentatives (connexion, inscription) repartent de zéro pour chaque test
+        static::getContainer()->get('cache.rate_limiter')->clear();
+
         $connection = $this->em->getConnection();
         foreach (['score', 'game', 'user'] as $table) {
             $connection->executeStatement(sprintf('DELETE FROM `%s`', $table));

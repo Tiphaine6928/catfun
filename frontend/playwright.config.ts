@@ -42,7 +42,14 @@ export default defineConfig({
       // Route qui ne lit pas la base : celle-ci n'est créée qu'ensuite, par global-setup.
       // Sans token, /api/me répond 401, ce que Playwright considère comme « serveur prêt ».
       url: `${API_URL}/api/me`,
-      env: { APP_ENV: 'test' },
+      // Seuils de tentatives très élevés : les tests créent des dizaines de comptes depuis la même adresse.
+      // (Les limites elles-mêmes sont testées par PHPUnit : tests/Controller/Api/RateLimitTest.php.)
+      env: {
+        APP_ENV: 'test',
+        REGISTRATION_MAX_ATTEMPTS: '100000',
+        LOGIN_MAX_ATTEMPTS_PER_ACCOUNT: '100000',
+        LOGIN_MAX_ATTEMPTS_PER_IP: '100000',
+      },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },

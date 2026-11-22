@@ -4,3 +4,7 @@
 'Invalid credentials.': 'Email ou mot de passe incorrect.'
 'Bad credentials.': 'Email ou mot de passe incorrect.'
 'Invalid CSRF token.': 'La page a expiré, recharge-la et réessaie.'
+# Trop de tentatives de connexion (login_throttling)
+'Too many failed login attempts, please try again in %minutes% minute.': 'Trop de tentatives de connexion. Réessaie dans %minutes% minute.'
+'Too many failed login attempts, please try again in %minutes% minutes.': 'Trop de tentatives de connexion. Réessaie dans %minutes% minutes.'
+'Too many failed login attempts, please try again later.': 'Trop de tentatives de connexion. Réessaie plus tard.'

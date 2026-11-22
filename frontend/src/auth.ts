@@ -66,7 +66,8 @@ export function loginErrorMessage(error: unknown): string {
       return 'Certains champs sont invalides, corrige-les puis réessaie.';
     }
     if (error.status === 429) {
-      return 'Trop de tentatives, réessaie dans quelques minutes.';
+      // Le serveur précise combien de temps attendre (« Réessaie dans 15 minutes. »)
+      return error.message.startsWith('Erreur ') ? 'Trop de tentatives, réessaie dans quelques minutes.' : error.message;
     }
 
     return 'Le serveur a rencontré un problème. Réessaie plus tard.';

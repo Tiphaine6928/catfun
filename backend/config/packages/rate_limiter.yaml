@@ -1,0 +1,21 @@
+# Limites de tentatives. Les seuils se règlent par variables d'environnement (valeurs par défaut dans .env).
+framework:
+    rate_limiter:
+        # Inscription : par adresse IP. Les tentatives refusées comptent aussi : elles permettraient
+        # sinon de tester en masse quels emails ont déjà un compte.
+        registration:
+            policy: sliding_window
+            limit: '%env(int:REGISTRATION_MAX_ATTEMPTS)%'
+            interval: '1 hour'
+
+        # Connexion (utilisées par login_throttling, voir security.yaml) :
+        # par compte et adresse IP…
+        login_per_account:
+            policy: fixed_window
+            limit: '%env(int:LOGIN_MAX_ATTEMPTS_PER_ACCOUNT)%'
+            interval: '15 minutes'
+        # … et par adresse IP, tous comptes confondus (un robot qui essaie beaucoup d'emails)
+        login_per_ip:
+            policy: fixed_window
+            limit: '%env(int:LOGIN_MAX_ATTEMPTS_PER_IP)%'
+            interval: '15 minutes'

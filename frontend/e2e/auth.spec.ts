@@ -160,3 +160,33 @@ test.describe('Inscription', () => {
     await expect(page.locator('.topbar__pseudo')).toHaveText(user.pseudo);
   });
 });
+
+test.describe('Trop de tentatives', () => {
+  // Le blocage lui-même est testé côté serveur (PHPUnit) ; ici, l'affichage du message du serveur.
+  const tooMany = (message: string) => ({
+    status: 429,
+    contentType: 'application/json',
+    headers: { 'Retry-After': '900' },
+    body: JSON.stringify({ code: 429, message }),
+  });
+
+  test('connexion bloquée : le message du serveur est affiché', async ({ page }) => {
+    await page.route('**/api/login', (route) => route.fulfill(tooMany('Trop de tentatives de connexion. Réessaie dans 15 minutes.')));
+    await page.goto('/#/login');
+    await loginWithForm(page, { email: 'felix@cat.fun', password: 'miaou123' });
+
+    await expect(page.getByRole('alert')).toHaveText('Trop de tentatives de connexion. Réessaie dans 15 minutes.');
+    await expect(page.getByRole('button', { name: 'Se connecter' })).toBeEnabled();
+  });
+
+  test('inscription bloquée : le message du serveur est affiché', async ({ page }) => {
+    await page.route('**/api/register', (route) => route.fulfill(tooMany('Trop de tentatives d’inscription. Réessaie dans 42 minutes.')));
+    await page.goto('/#/register');
+    await page.getByLabel('Email').fill('felix@cat.fun');
+    await page.getByLabel('Pseudo').fill('Félix');
+    await page.getByLabel('Mot de passe', { exact: true }).fill('miaou123');
+    await page.getByRole('button', { name: 'Créer mon compte' }).click();
+
+    await expect(page.getByRole('alert')).toHaveText('Trop de tentatives d’inscription. Réessaie dans 42 minutes.');
+  });
+});

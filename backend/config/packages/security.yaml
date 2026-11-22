@@ -22,7 +22,13 @@ security:
                 password_path: password
                 provider: app_user_provider
                 success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+                # 429 avec un message clair quand il y a trop de tentatives (voir LoginFailureHandler)
+                failure_handler: App\Security\LoginFailureHandler
+            # Limite les tentatives de connexion : par défaut 5 par quart d'heure pour un même email
+            # depuis une même adresse IP, et 25 par quart d'heure par adresse IP (config/packages/rate_limiter.yaml).
+            # Seuls les échecs comptent ; ils expirent au bout du quart d'heure.
+            login_throttling:
+                limiter: app.login_rate_limiter
         
         api:
             pattern: ^/api
