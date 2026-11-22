@@ -1,38 +1,45 @@
-/* ---------- Thème ---------- */
+/* ---------- Thème : charte graphique CatFun ----------
+ * Fond violet clair #EDE7F6, texte violet foncé #5E35B1, police Baloo 2.
+ * Les autres couleurs en sont dérivées ; chaque texte a un contraste d'au moins 4,5:1 (WCAG AA).
+ */
 :root {
-  --color-bg: #fff8f1;
+  --color-bg: #ede7f6;            /* charte : fond violet clair */
   --color-surface: #ffffff;
-  --color-text: #2b2118;
-  --color-muted: #6f5f52;
-  --color-border: #ead8c7;
-  --color-primary: #c2560f;
-  --color-primary-hover: #a3470c;
+  --color-text: #5e35b1;          /* charte : texte violet foncé */
+  --color-strong: #311b92;        /* titres et chiffres importants */
+  --color-muted: #6a5a8c;
+  --color-border: #d1c4e9;
+  --color-primary: #5e35b1;       /* boutons, liens, onglets actifs */
+  --color-primary-hover: #4527a0;
   --color-on-primary: #ffffff;
-  --color-focus: #f59e0b;
-  --color-error: #b42318;
-  --color-error-bg: #fef3f2;
-  --color-info: #175cd3;
-  --color-info-bg: #eff8ff;
+  --color-focus: #311b92;
+  --color-error: #b3261e;
+  --color-error-bg: #fdecec;
+  --color-info: #1e5aa8;
+  --color-info-bg: #e8f0fb;
   --radius: 12px;
-  --shadow: 0 10px 30px rgb(120 70 30 / 0.12);
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --shadow: 0 10px 30px rgb(49 27 146 / 0.12);
+  --font: 'Baloo 2', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Thème sombre : mêmes violets, adaptés à un fond foncé */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #1c1612;
-    --color-surface: #28201a;
-    --color-text: #f5ede6;
-    --color-muted: #bfae9f;
-    --color-border: #43362c;
-    --color-primary: #f08a3c;
-    --color-primary-hover: #f5a265;
-    --color-on-primary: #1c1612;
-    --color-error: #fda29b;
-    --color-error-bg: #3b1a17;
-    --color-info: #84caff;
-    --color-info-bg: #142a44;
-    --shadow: 0 10px 30px rgb(0 0 0 / 0.4);
+    --color-bg: #17112a;
+    --color-surface: #221a3a;
+    --color-text: #ede7f6;
+    --color-strong: #ffffff;
+    --color-muted: #b9a9dd;
+    --color-border: #3d3160;
+    --color-primary: #b39ddb;
+    --color-primary-hover: #d1c4e9;
+    --color-on-primary: #17112a;
+    --color-focus: #ffd54f;
+    --color-error: #f2b8b5;
+    --color-error-bg: #3b1a24;
+    --color-info: #9cc6ff;
+    --color-info-bg: #16264a;
+    --shadow: 0 10px 30px rgb(0 0 0 / 0.45);
   }
 }
 
@@ -52,9 +59,24 @@ body {
   line-height: 1.5;
 }
 
+/* Les boutons et les champs n'héritent pas de la police de la page par défaut : on la leur donne */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-strong);
+  font-weight: 700;
+}
+
 h1 {
   margin: 0 0 0.25rem;
-  font-size: 1.75rem;
+  font-size: 1.9rem;
   line-height: 1.2;
 }
 

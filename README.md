@@ -122,6 +122,19 @@ Pages disponibles :
 - `#/classement` : classement par jeu (public, accessible sans compte)
 - `#/profil` : mon profil (changer de pseudo, records et parties jouées par jeu, dernières parties gagnées) ; on y accède en cliquant sur son pseudo
 
+### Charte graphique
+
+| Élément | Valeur |
+|---|---|
+| Fond | Violet clair `#EDE7F6` |
+| Texte, boutons et liens | Violet foncé `#5E35B1` |
+| Police | Baloo 2 (arrondie, ludique), intégrée au site via `@fontsource/baloo-2` |
+
+Toutes les couleurs sont des variables CSS au début de `frontend/src/styles.css` (`--color-…`).
+Les nuances secondaires (titres, textes discrets, bordures, survol) sont dérivées de la palette, et chaque
+couleur de texte respecte un contraste d'au moins 4,5:1 (norme WCAG AA). Un thème sombre dans les mêmes
+violets s'applique quand l'appareil est réglé en mode sombre.
+
 ### Jeu du Pendu
 - Le chat a **neuf vies** : 9 erreurs autorisées.
 - Mots sur le thème des chats (`frontend/src/games/pendu/words.ts`). Les accents sont gérés :
