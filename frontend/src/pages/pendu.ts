@@ -91,6 +91,8 @@ export function renderPendu(container: HTMLElement): () => void {
   let left = false;
 
   const keys = new Map<string, HTMLButtonElement>();
+  /** Lettres envoyées dont la réponse n'est pas encore arrivée : leur touche reste grisée. */
+  const pendingLetters = new Set<string>();
   for (const letter of ALPHABET) {
     const key = document.createElement('button');
     key.type = 'button';
@@ -151,6 +153,8 @@ export function renderPendu(container: HTMLElement): () => void {
         return;
       }
       session = started;
+      // Les lettres encore en attente concernaient l'ancienne partie
+      pendingLetters.clear();
     } catch (error) {
       showError(error, 'Impossible de commencer une partie.');
       return;
@@ -172,11 +176,13 @@ export function renderPendu(container: HTMLElement): () => void {
     }
 
     // Retour immédiat : la touche se grise tout de suite, sans attendre la réponse du serveur
-    const key = keys.get(input.toUpperCase());
+    const letter = input.toUpperCase();
+    const key = keys.get(letter);
     if (key) {
       if (key.disabled) {
         return;
       }
+      pendingLetters.add(letter);
       key.disabled = true;
       key.classList.add('key--pending');
     }
@@ -196,13 +202,17 @@ export function renderPendu(container: HTMLElement): () => void {
         }
       })
       .catch((error: unknown) => {
-        // La lettre n'est pas partie : on remet le clavier dans l'état connu du serveur
+        // La lettre n'est pas partie : on remet sa touche dans l'état connu du serveur
+        pendingLetters.delete(letter);
         if (!left && session?.id === current.id) {
           update();
         }
         showError(error, 'La lettre n’a pas pu être envoyée.');
       })
-      .finally(() => key?.classList.remove('key--pending'));
+      .finally(() => {
+        pendingLetters.delete(letter);
+        key?.classList.remove('key--pending');
+      });
   }
 
   function messageFor(outcome: string | undefined, letter: string, state: PenduState): string {
@@ -238,7 +248,9 @@ export function renderPendu(container: HTMLElement): () => void {
 
     for (const [letter, key] of keys) {
       const guessed = state.guessed.includes(letter);
-      key.disabled = guessed;
+      // Une réponse pour une lettre précédente ne réactive pas une touche encore en attente
+      key.disabled = guessed || pendingLetters.has(letter);
+      key.classList.toggle('key--pending', pendingLetters.has(letter));
       key.classList.toggle('key--correct', guessed && !state.wrong.includes(letter));
       key.classList.toggle('key--wrong', state.wrong.includes(letter));
     }
