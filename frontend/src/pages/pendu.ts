@@ -1,6 +1,7 @@
 import { ApiError, NetworkError } from '../api';
 import { findGame, guessLetter, scoreMessage, startSession, type GameSession, type PenduState } from '../games/api';
 import { createMoveQueue } from '../games/move-queue';
+import penduUrl from '../assets/jeu-pendu.webp';
 import { renderLayout } from '../ui/layout';
 
 /**
@@ -16,7 +17,10 @@ const TEMPLATE = `
       <h1>Pendu</h1>
       <button type="button" class="button button--ghost button--small new-game">Nouveau mot</button>
     </div>
-    <p class="page__intro">Trouve le mot caché, lettre par lettre. Chaque erreur coûte une des neuf vies du chat !</p>
+    <div class="game-host">
+      <img class="game-host__image" src="${penduUrl}" alt="" width="600" height="511">
+      <p class="game-host__text">Twixy a caché un mot : trouve-le lettre par lettre&nbsp;! Chaque erreur coûte une des neuf vies de Twixy.</p>
+    </div>
 
     <div class="alert alert--error" role="alert" hidden></div>
 
@@ -262,7 +266,7 @@ export function renderPendu(container: HTMLElement): () => void {
     hint.hidden = true;
     result.hidden = false;
     result.className = `pendu__result pendu__result--${won ? 'won' : 'lost'}`;
-    resultTitle.textContent = won ? 'Bravo, tu as trouvé ! 🎉' : 'Perdu… le chat a épuisé ses neuf vies.';
+    resultTitle.textContent = won ? 'Bravo, tu as trouvé ! Twixy ronronne de joie 🎉' : 'Perdu… Twixy a épuisé ses neuf vies.';
     resultWord.textContent = `Le mot était : ${state.word ?? ''}`;
 
     if (won && score) {

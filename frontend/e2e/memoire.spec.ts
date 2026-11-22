@@ -42,6 +42,7 @@ test.describe('Mémoire', () => {
     await expect(page.getByRole('link', { name: 'Normal · 8 paires' })).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('.card-tile')).toHaveCount(16);
     await expect(stats(page)).toHaveText('Paires : 0 / 8 · Coups : 0 · Erreurs : 0');
+    await expect(page.getByText(/^Aïna a mélangé ses cartes/)).toBeVisible();
     await expect(card(page, 0)).toHaveAttribute('aria-label', 'Carte 1 : face cachée');
   });
 
@@ -119,7 +120,7 @@ test.describe('Mémoire', () => {
 
     await finish(page);
 
-    await expect(page.getByRole('heading', { name: 'Parfait, aucune erreur ! 😻' })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'Parfait, aucune erreur ! Aïna n’en revient pas 😻' })).toBeFocused();
     await expect(page.locator('.pendu__result-score')).toContainText('Score : 600 points');
     await expect(page.locator('.score-save')).toHaveText('Score enregistré ✓ Nouveau record en Facile : 600 points !');
     expect(await bestScore(request, user, 'Mémoire', 'facile')).toBe(600);

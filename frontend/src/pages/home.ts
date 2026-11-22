@@ -32,7 +32,7 @@ const GAMES = `
       <a class="game-card" href="#/pendu">
         <img class="game-card__image" src="${penduUrl}" alt="" width="600" height="511" loading="lazy">
         <span class="game-card__name">Pendu</span>
-        <span class="game-card__text">Retrouve le mot caché avant que le chat ne perde ses neuf vies.</span>
+        <span class="game-card__text">Retrouve le mot caché avant que Twixy ne perde ses neuf vies.</span>
         <span class="game-card__cta">Suivre Twixy pour jouer au pendu <span aria-hidden="true">→</span></span>
       </a>
     </li>
@@ -40,7 +40,7 @@ const GAMES = `
       <a class="game-card" href="#/memoire">
         <img class="game-card__image" src="${memoireUrl}" alt="" width="600" height="528" loading="lazy">
         <span class="game-card__name">Mémoire</span>
-        <span class="game-card__text">Retourne les cartes et retrouve les paires de chats en un minimum de coups.</span>
+        <span class="game-card__text">Retourne les cartes d’Aïna et retrouve les paires de chats en un minimum de coups.</span>
         <span class="game-card__cta">Suivre Aïna pour jouer au jeu de mémoire <span aria-hidden="true">→</span></span>
       </a>
     </li>

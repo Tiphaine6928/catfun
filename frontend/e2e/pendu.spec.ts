@@ -26,6 +26,7 @@ test.describe('Pendu', () => {
     await expect(page.getByRole('link', { name: 'Pendu' })).toHaveAttribute('aria-current', 'page');
     await expect.poll(() => shownWord(page)).toBe('__________');
     await expect(lives(page)).toHaveText('9 vies restantes');
+    await expect(page.getByText(/^Twixy a caché un mot/)).toBeVisible();
     await expect(page.getByRole('group', { name: 'Lettres' }).getByRole('button')).toHaveCount(26);
   });
 
@@ -55,7 +56,7 @@ test.describe('Pendu', () => {
     await page.keyboard.press('z'); // une erreur
     for (const letter of 'moustache') await page.keyboard.press(letter);
 
-    await expect(page.getByRole('heading', { name: 'Bravo, tu as trouvé ! 🎉' })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'Bravo, tu as trouvé ! Twixy ronronne de joie 🎉' })).toBeFocused();
     await expect(page.getByRole('group', { name: 'Lettres' })).toBeHidden();
     const expected = 100 + 20 * 8 + 5 * 9; // 8 vies restantes, 9 lettres différentes
     await expect(page.locator('.pendu__result-score')).toContainText(`Score : ${expected} points`);
@@ -71,7 +72,7 @@ test.describe('Pendu', () => {
   test('défaite après neuf erreurs : mot révélé, aucun score', async ({ page, request }) => {
     for (const letter of 'bdfgijklp') await page.keyboard.press(letter);
 
-    await expect(page.getByRole('heading', { name: /^Perdu/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Perdu… Twixy a épuisé ses neuf vies.' })).toBeVisible();
     await expect.poll(() => shownWord(page)).toBe('MOUSTACHES');
     await expect(page.locator('.cell--missed')).toHaveCount(10);
     await expect(lives(page)).toHaveText('0 vie restante');

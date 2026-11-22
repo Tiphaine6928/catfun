@@ -1,6 +1,7 @@
 import { ApiError, NetworkError } from '../api';
 import { findGame, flipCard, scoreMessage, startSession, type GameSession, type MemoireState } from '../games/api';
 import { createMoveQueue } from '../games/move-queue';
+import memoireUrl from '../assets/jeu-memoire.webp';
 import { renderLayout } from '../ui/layout';
 
 /**
@@ -25,7 +26,10 @@ const TEMPLATE = `
       <h1>Mémoire</h1>
       <button type="button" class="button button--ghost button--small new-game">Nouvelle partie</button>
     </div>
-    <p class="page__intro">Retourne les cartes deux par deux et retrouve toutes les paires de chats, en un minimum de coups !</p>
+    <div class="game-host">
+      <img class="game-host__image" src="${memoireUrl}" alt="" width="600" height="528">
+      <p class="game-host__text">Aïna a mélangé ses cartes : retourne-les deux par deux et retrouve toutes les paires de chats, en un minimum de coups&nbsp;!</p>
+    </div>
 
     <div class="alert alert--error" role="alert" hidden></div>
 
@@ -276,7 +280,7 @@ export function renderMemoire(container: HTMLElement, params: URLSearchParams): 
     hint.hidden = true;
     result.hidden = false;
     result.className = 'pendu__result game-result pendu__result--won';
-    resultTitle.textContent = state.mistakes === 0 ? 'Parfait, aucune erreur ! 😻' : 'Bravo, toutes les paires sont trouvées ! 🎉';
+    resultTitle.textContent = state.mistakes === 0 ? 'Parfait, aucune erreur ! Aïna n’en revient pas 😻' : 'Bravo, toutes les paires sont trouvées ! Aïna ronronne de joie 🎉';
     resultDetail.textContent = `${state.totalPairs} paires en ${state.moves} coups (${state.mistakes} erreur${state.mistakes > 1 ? 's' : ''}).`;
     if (score) {
       // Score calculé et enregistré par le serveur
