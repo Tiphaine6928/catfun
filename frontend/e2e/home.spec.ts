@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { createUser, loginWithForm, loginWithToken, MOBILE } from './helpers';
+import { createUser, loginWithToken, MOBILE } from './helpers';
 
 test.describe('Accueil', () => {
   test('un visiteur arrive sur l’accueil, pas sur la connexion', async ({ page }) => {
