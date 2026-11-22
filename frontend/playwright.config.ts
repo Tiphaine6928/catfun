@@ -49,6 +49,7 @@ export default defineConfig({
         REGISTRATION_MAX_ATTEMPTS: '100000',
         LOGIN_MAX_ATTEMPTS_PER_ACCOUNT: '100000',
         LOGIN_MAX_ATTEMPTS_PER_IP: '100000',
+        GUEST_GAMES_MAX_PER_HOUR: '100000',
       },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

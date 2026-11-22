@@ -34,8 +34,9 @@ startRouter({
   homePath: '/',
   routes: {
     '/': { title: 'Accueil', render: renderHome },
-    '/pendu': { title: 'Pendu', render: renderPendu, requiresAuth: true },
-    '/memoire': { title: 'Mémoire', render: renderMemoire, requiresAuth: true },
+    // Les jeux se jouent aussi sans compte ; il faut un compte pour enregistrer son score
+    '/pendu': { title: 'Pendu', render: renderPendu },
+    '/memoire': { title: 'Mémoire', render: renderMemoire },
     '/classement': { title: 'Classement', render: renderLeaderboard },
     '/profil': { title: 'Mon profil', render: renderProfile, requiresAuth: true },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },

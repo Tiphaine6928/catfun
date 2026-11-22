@@ -29,6 +29,7 @@ describe('safeRedirect', () => {
   it('accepte un chemin interne', () => {
     expect(safeRedirect('/pendu')).toBe('/pendu');
     expect(safeRedirect('/classement')).toBe('/classement');
+    expect(safeRedirect('/memoire?niveau=facile')).toBe('/memoire?niveau=facile');
   });
 
   it('renvoie à l’accueil pour une adresse externe, vide ou exclue', () => {
@@ -36,5 +37,7 @@ describe('safeRedirect', () => {
     expect(safeRedirect('/x?y=<z>')).toBe('/');
     expect(safeRedirect(null)).toBe('/');
     expect(safeRedirect('/login', ['/login'])).toBe('/');
+    expect(safeRedirect('/login?x=1', ['/login'])).toBe('/');
+    expect(safeRedirect('//pirate.example')).toBe('/');
   });
 });

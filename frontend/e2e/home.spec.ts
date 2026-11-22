@@ -21,16 +21,13 @@ test.describe('Accueil', () => {
     await expect(hero.getByRole('link', { name: 'Se connecter' })).toHaveAttribute('href', '#/login');
   });
 
-  test('un visiteur qui choisit un jeu se connecte, puis arrive sur ce jeu', async ({ page, request }) => {
-    const user = await createUser(request);
+  test('un visiteur peut jouer directement, sans se connecter', async ({ page }) => {
     await page.goto('/');
 
     await page.locator('a.game-card[href="#/memoire"]').click();
-    await expect(page).toHaveURL(/#\/login\?redirect=%2Fmemoire$/);
-
-    await loginWithForm(page, user);
     await expect(page).toHaveURL(/#\/memoire$/);
     await expect(page.locator('.card-tile').first()).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Se connecter' })).toBeVisible();
   });
 
   test('depuis l’accueil, « Créer un compte » mène à l’inscription', async ({ page }) => {

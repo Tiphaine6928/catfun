@@ -12,11 +12,13 @@ use App\Game\Pendu\PenduEngine;
 use App\Repository\GameRepository;
 use App\Repository\GameSessionRepository;
 use App\Repository\ScoreRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
@@ -25,6 +27,9 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
  *
  * Le serveur choisit le mot ou mélange les cartes, applique chaque coup, et calcule le score
  * lui-même à la victoire. Le joueur ne reçoit que ce qu'il a le droit de voir.
+ *
+ * Tout le monde peut jouer, même sans compte. Pour un visiteur, le score n'est pas enregistré :
+ * il peut l'enregistrer après s'être inscrit ou connecté (POST /api/sessions/{id}/claim).
  */
 #[Route('/api', name: 'api_')]
 class GameSessionController extends AbstractController
@@ -37,15 +42,29 @@ class GameSessionController extends AbstractController
         private readonly ScoreRepository $scoreRepository,
         private readonly GameEngines $engines,
         private readonly EntityManagerInterface $entityManager,
+        private readonly RateLimiterFactory $guestGamesLimiter,
     ) {
     }
 
     /**
-     * Commence une partie. Corps JSON facultatif : {"level": "facile"} (obligatoire pour un jeu à niveaux).
+     * Commence une partie, connecté ou non. Corps JSON facultatif :
+     * - "level" : "facile"… (obligatoire pour un jeu à niveaux)
+     * - "previous" : identifiant de la partie précédente d'un visiteur (pour ne pas retomber sur le même mot)
      */
     #[Route('/games/{id<\d+>}/sessions', name: 'sessions_start', methods: ['POST'])]
-    public function start(int $id, Request $request, #[CurrentUser] User $user): JsonResponse
+    public function start(int $id, Request $request, #[CurrentUser] ?User $user): JsonResponse
     {
+        if (null === $user) {
+            // Visiteurs : nombre de parties limité par adresse IP (config/packages/rate_limiter.yaml)
+            $limit = $this->guestGamesLimiter->create($request->getClientIp() ?? 'inconnue')->consume();
+            if (!$limit->isAccepted()) {
+                $response = $this->error('Tu as lancé beaucoup de parties sans être connecté. Crée un compte ou connecte-toi pour continuer à jouer.', Response::HTTP_TOO_MANY_REQUESTS);
+                $response->headers->set('Retry-After', (string) max(1, $limit->getRetryAfter()->getTimestamp() - time()));
+
+                return $response;
+            }
+        }
+
         $game = $this->gameRepository->find($id);
         $engine = null !== $game ? $this->engines->forGame($game) : null;
         if (null === $game || null === $engine) {
@@ -68,7 +87,20 @@ class GameSessionController extends AbstractController
             return $this->validationError(['level' => 'Ce jeu n\'a pas de niveaux.']);
         }
 
-        $previous = $this->sessionRepository->findLastForPlayer($user, $game);
+        $previousId = $data['previous'] ?? null;
+        if (null !== $previousId && (!\is_string($previousId) || !preg_match('/^[0-9a-f]{32}$/', $previousId))) {
+            return $this->validationError(['previous' => 'Identifiant de partie invalide.']);
+        }
+
+        if (null !== $user) {
+            $previous = $this->sessionRepository->findLastForPlayer($user, $game);
+        } else {
+            // Visiteur : seulement une partie de visiteur du même jeu
+            $previous = null !== $previousId ? $this->sessionRepository->find($previousId) : null;
+            if (null !== $previous && (!$previous->isGuest() || $previous->getGame()->getId() !== $game->getId())) {
+                $previous = null;
+            }
+        }
         $state = $engine->start($level, $previous?->getState());
         $session = new GameSession($user, $game, $level, $state);
         $this->entityManager->persist($session);
@@ -81,10 +113,10 @@ class GameSessionController extends AbstractController
      * État visible d'une partie (pour la reprendre).
      */
     #[Route('/sessions/{id<[0-9a-f]{32}>}', name: 'sessions_show', methods: ['GET'])]
-    public function show(string $id, #[CurrentUser] User $user): JsonResponse
+    public function show(string $id, #[CurrentUser] ?User $user): JsonResponse
     {
         $session = $this->sessionRepository->find($id);
-        if (null === $session || $session->getPlayer()->getId() !== $user->getId()) {
+        if (null === $session || !$session->isPlayableBy($user)) {
             return $this->sessionNotFound();
         }
 
@@ -95,7 +127,7 @@ class GameSessionController extends AbstractController
      * Pendu : propose une lettre. Corps JSON : {"letter": "e"}
      */
     #[Route('/sessions/{id<[0-9a-f]{32}>}/guess', name: 'sessions_guess', methods: ['POST'])]
-    public function guess(string $id, Request $request, #[CurrentUser] User $user): JsonResponse
+    public function guess(string $id, Request $request, #[CurrentUser] ?User $user): JsonResponse
     {
         $data = $this->decodeJsonBody($request);
         if ($data instanceof JsonResponse) {
@@ -112,7 +144,7 @@ class GameSessionController extends AbstractController
      * Mémoire : retourne une carte. Corps JSON : {"index": 3}
      */
     #[Route('/sessions/{id<[0-9a-f]{32}>}/flip', name: 'sessions_flip', methods: ['POST'])]
-    public function flip(string $id, Request $request, #[CurrentUser] User $user): JsonResponse
+    public function flip(string $id, Request $request, #[CurrentUser] ?User $user): JsonResponse
     {
         $data = $this->decodeJsonBody($request);
         if ($data instanceof JsonResponse) {
@@ -126,15 +158,48 @@ class GameSessionController extends AbstractController
     }
 
     /**
+     * Enregistre le score d'une partie gagnée sans être connecté, juste après l'inscription ou la connexion.
+     * Possible pendant GameSession::CLAIM_DELAY après la victoire, une seule fois.
+     */
+    #[Route('/sessions/{id<[0-9a-f]{32}>}/claim', name: 'sessions_claim', methods: ['POST'])]
+    public function claim(string $id, #[CurrentUser] User $user): JsonResponse
+    {
+        return $this->entityManager->wrapInTransaction(function () use ($id, $user): JsonResponse {
+            $session = $this->sessionRepository->find($id, LockMode::PESSIMISTIC_WRITE);
+            if (null === $session || !$session->isPlayableBy($user)) {
+                return $this->sessionNotFound();
+            }
+
+            $engine = $this->engineFor($session);
+            // Déjà enregistré pour ce joueur (requête renvoyée deux fois) : même réponse
+            if (!$session->isGuest() && null !== $session->getScore()) {
+                return $this->json($this->serialize($session, $engine));
+            }
+            if (!$session->isGuest() || GameEngine::WON !== $session->getStatus()) {
+                return $this->error('Seule une partie gagnée sans être connecté peut être enregistrée.', Response::HTTP_CONFLICT);
+            }
+            if (!$session->isClaimable()) {
+                return $this->error('Cette partie est trop ancienne : son score ne peut plus être enregistré.', Response::HTTP_CONFLICT);
+            }
+
+            $score = $this->createScore($session, $user, $engine);
+            $session->claim($user, $score);
+            $this->entityManager->flush();
+
+            return $this->json($this->serialize($session, $engine));
+        });
+    }
+
+    /**
      * Joue un coup dans une transaction, avec la partie verrouillée :
      * deux coups envoyés en même temps sont appliqués l'un après l'autre, et le score n'est enregistré qu'une fois.
      *
      * @param class-string<GameEngine> $engineClass
      */
-    private function play(string $id, User $user, string $engineClass, callable $move): JsonResponse
+    private function play(string $id, ?User $user, string $engineClass, callable $move): JsonResponse
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $user, $engineClass, $move): JsonResponse {
-            $session = $this->sessionRepository->findForPlayerAndLock($id, $user);
+            $session = $this->sessionRepository->findPlayableAndLock($id, $user);
             if (null === $session) {
                 return $this->sessionNotFound();
             }
@@ -151,20 +216,27 @@ class GameSessionController extends AbstractController
             $status = $engine->status($state);
             $session->setState($state, $status);
 
-            if (GameEngine::WON === $status) {
-                // Le score est calculé par le serveur, jamais envoyé par le navigateur
-                $score = (new Score())
-                    ->setPlayer($user)
-                    ->setGame($session->getGame())
-                    ->setLevel($session->getLevel())
-                    ->setPoints($engine->score($state));
-                $this->entityManager->persist($score);
-                $session->setScore($score);
+            $player = $session->getPlayer();
+            if (GameEngine::WON === $status && null !== $player) {
+                $session->setScore($this->createScore($session, $player, $engine));
             }
             $this->entityManager->flush();
 
             return $this->json(['result' => $result] + $this->serialize($session, $engine));
         });
+    }
+
+    /** Le score est calculé par le serveur, jamais envoyé par le navigateur. */
+    private function createScore(GameSession $session, User $player, GameEngine $engine): Score
+    {
+        $score = (new Score())
+            ->setPlayer($player)
+            ->setGame($session->getGame())
+            ->setLevel($session->getLevel())
+            ->setPoints($engine->score($session->getState()));
+        $this->entityManager->persist($score);
+
+        return $score;
     }
 
     /**
@@ -180,11 +252,18 @@ class GameSessionController extends AbstractController
             'status' => $session->getStatus(),
             'state' => $engine->publicState($session->getState()),
             'score' => null,
+            // Partie de visiteur gagnée : points obtenus, pas encore enregistrés
+            'unsavedPoints' => null,
         ];
 
+        if ($session->isClaimable()) {
+            $data['unsavedPoints'] = $engine->score($session->getState());
+        }
+
         $score = $session->getScore();
-        if (null !== $score) {
-            $best = $this->scoreRepository->findBestPointsForPlayer($session->getPlayer(), $game, $session->getLevel());
+        $player = $session->getPlayer();
+        if (null !== $score && null !== $player) {
+            $best = $this->scoreRepository->findBestPointsForPlayer($player, $game, $session->getLevel());
             $data['score'] = [
                 'points' => $score->getPoints(),
                 'best' => $best,

@@ -1,6 +1,8 @@
 import { ApiError } from '../api';
 import { loginErrorMessage, register } from '../auth';
+import { claimPendingScore } from '../games/pending-score';
 import { navigate } from '../router';
+import { setFlash } from '../ui/flash';
 import {
   clearErrorOnInput,
   hideAlert,
@@ -102,6 +104,11 @@ export function renderRegister(container: HTMLElement, params: URLSearchParams):
     setLoading(submit, true, 'Créer mon compte', 'Création du compte…');
     try {
       await register(email.value.trim(), pseudo.value.trim(), password.value);
+      // Partie gagnée juste avant sans être connecté : on enregistre son score maintenant
+      const claimed = await claimPendingScore();
+      if (claimed) {
+        setFlash({ message: claimed.message, kind: claimed.ok ? 'info' : 'error' });
+      }
       navigate(safeRedirect(redirect, ['/login', '/register']));
     } catch (error) {
       // Erreurs renvoyées par l'API (email ou pseudo déjà pris…) : affichées sous chaque champ

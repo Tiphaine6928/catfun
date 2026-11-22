@@ -2,6 +2,8 @@ import { ApiError, NetworkError } from '../api';
 import { findGame, flipCard, scoreMessage, startSession, type GameSession, type MemoireState } from '../games/api';
 import { createMoveQueue } from '../games/move-queue';
 import memoireUrl from '../assets/jeu-memoire.webp';
+import { isLoggedIn } from '../auth';
+import { offerToSaveScore } from '../ui/guest-save';
 import { renderLayout } from '../ui/layout';
 
 /**
@@ -136,7 +138,8 @@ export function renderMemoire(container: HTMLElement, params: URLSearchParams): 
     try {
       const game = await findGame('Mémoire');
       $<HTMLAnchorElement>('.leaderboard-link').setAttribute('href', `#/classement?jeu=${game.id}&niveau=${level}`);
-      const started = await queue(() => startSession<MemoireState>(game.id, level));
+      const previous = isLoggedIn() ? null : session?.id;
+      const started = await queue(() => startSession<MemoireState>(game.id, level, previous));
       if (left) {
         return;
       }
@@ -275,18 +278,23 @@ export function renderMemoire(container: HTMLElement, params: URLSearchParams): 
       return;
     }
     const { state, score } = session;
-    const bonus = score ? score.points - 50 * state.totalPairs : 0;
+    // Score calculé par le serveur : enregistré pour un joueur connecté, en attente pour un visiteur
+    const points = score?.points ?? session.unsavedPoints;
+    const bonus = points !== null ? points - 50 * state.totalPairs : 0;
 
     hint.hidden = true;
     result.hidden = false;
     result.className = 'pendu__result game-result pendu__result--won';
     resultTitle.textContent = state.mistakes === 0 ? 'Parfait, aucune erreur ! Aïna n’en revient pas 😻' : 'Bravo, toutes les paires sont trouvées ! Aïna ronronne de joie 🎉';
     resultDetail.textContent = `${state.totalPairs} paires en ${state.moves} coups (${state.mistakes} erreur${state.mistakes > 1 ? 's' : ''}).`;
+    if (points !== null) {
+      resultScore.textContent = `Score : ${points} points (50 × ${state.totalPairs} paires + bonus de précision de ${bonus})`;
+    }
     if (score) {
-      // Score calculé et enregistré par le serveur
-      resultScore.textContent = `Score : ${score.points} points (50 × ${state.totalPairs} paires + bonus de précision de ${bonus})`;
       scoreStatus.className = 'score-save score-save--ok';
       scoreStatus.textContent = scoreMessage(score, level);
+    } else if (points !== null) {
+      offerToSaveScore(scoreStatus, { sessionId: session.id, game: 'Mémoire', level, points }, `/memoire?niveau=${level}`);
     }
     announce(`${resultTitle.textContent} ${resultDetail.textContent}`);
     resultTitle.focus();

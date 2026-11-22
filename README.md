@@ -76,6 +76,11 @@ Au premier démarrage, MySQL met jusqu'à une minute à s'initialiser : le backe
 Si un conteneur reste à l'état `Created` (`docker compose ps -a`), un port est sans doute déjà utilisé
 sur ta machine : le message d'erreur s'affiche dans la sortie de `docker compose up`.
 
+**Parties sans compte.** Les jeux se jouent sans être connecté. Un visiteur qui gagne peut s'inscrire
+ou se connecter dans l'heure pour enregistrer son score. Les vieilles parties de visiteurs se
+suppriment avec (à lancer de temps en temps) :
+`docker compose exec backend php bin/console app:guest-sessions:purge`
+
 **Performances sous Windows.** `vendor/` et `var/` (cache et logs Symfony) restent dans des volumes
 Docker, hors du dossier partagé avec Windows, et OPcache est activé : sans ça, chaque requête
 prend plusieurs secondes. Pour aller encore plus vite, place le projet dans le système de fichiers

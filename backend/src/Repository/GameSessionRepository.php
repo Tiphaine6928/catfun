@@ -35,15 +35,31 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Partie du joueur, verrouillée jusqu'à la fin de la transaction :
+     * Partie jouable par cet utilisateur (null : visiteur), verrouillée jusqu'à la fin de la transaction :
      * deux coups envoyés en même temps sont joués l'un après l'autre.
      * Renvoie null si la partie n'existe pas ou appartient à quelqu'un d'autre.
      */
-    public function findForPlayerAndLock(string $id, User $player): ?GameSession
+    public function findPlayableAndLock(string $id, ?User $user): ?GameSession
     {
         $session = $this->find($id, LockMode::PESSIMISTIC_WRITE);
 
-        return null !== $session && $session->getPlayer()->getId() === $player->getId() ? $session : null;
+        return null !== $session && $session->isPlayableBy($user) ? $session : null;
+    }
+
+    /**
+     * Supprime les parties de visiteurs commencées avant cette date (leur score ne peut plus être enregistré).
+     *
+     * @return int nombre de parties supprimées
+     */
+    public function deleteGuestSessionsBefore(\DateTimeImmutable $before): int
+    {
+        return $this->createQueryBuilder('s')
+            ->delete()
+            ->andWhere('s.player IS NULL')
+            ->andWhere('s.createdAt < :before')
+            ->setParameter('before', $before)
+            ->getQuery()
+            ->execute();
     }
 
     /**

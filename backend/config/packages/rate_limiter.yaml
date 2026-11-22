@@ -19,3 +19,9 @@ framework:
             policy: fixed_window
             limit: '%env(int:LOGIN_MAX_ATTEMPTS_PER_IP)%'
             interval: '15 minutes'
+
+        # Parties lancées sans être connecté : par adresse IP (évite qu'un robot remplisse la base)
+        guest_games:
+            policy: sliding_window
+            limit: '%env(int:GUEST_GAMES_MAX_PER_HOUR)%'
+            interval: '1 hour'

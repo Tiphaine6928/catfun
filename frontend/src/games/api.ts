@@ -96,6 +96,8 @@ export interface GameSession<State> {
   status: SessionStatus;
   state: State;
   score: SessionScore | null;
+  /** Partie gagnée sans être connecté : points obtenus, pas encore enregistrés (null sinon). */
+  unsavedPoints: number | null;
   /** Résultat du dernier coup (absent au démarrage). */
   result?: string;
 }
@@ -139,9 +141,21 @@ export interface MemoireState {
   status: SessionStatus;
 }
 
-/** Commence une partie ; `level` est obligatoire pour un jeu à niveaux. */
-export function startSession<State>(gameId: number, level?: string): Promise<GameSession<State>> {
-  return apiFetch<GameSession<State>>(`/api/games/${gameId}/sessions`, { method: 'POST', body: level ? { level } : {} });
+/**
+ * Commence une partie, connecté ou non ; `level` est obligatoire pour un jeu à niveaux.
+ * `previous` : partie précédente d'un visiteur, pour que le serveur ne redonne pas le même mot
+ * (pour un joueur connecté, le serveur la retrouve tout seul).
+ */
+export function startSession<State>(gameId: number, level?: string, previous?: string | null): Promise<GameSession<State>> {
+  return apiFetch<GameSession<State>>(`/api/games/${gameId}/sessions`, {
+    method: 'POST',
+    body: { ...(level ? { level } : {}), ...(previous ? { previous } : {}) },
+  });
+}
+
+/** Enregistre le score d'une partie gagnée sans être connecté (une fois inscrit ou connecté). */
+export function claimSession(sessionId: string): Promise<GameSession<unknown>> {
+  return apiFetch<GameSession<unknown>>(`/api/sessions/${sessionId}/claim`, { method: 'POST' });
 }
 
 /** Pendu : propose une lettre. */

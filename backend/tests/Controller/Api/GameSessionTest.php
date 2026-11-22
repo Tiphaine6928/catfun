@@ -47,9 +47,9 @@ final class GameSessionTest extends ApiTestCase
 
     // --- Démarrage ---------------------------------------------------------
 
-    public function testStartingAGameRequiresAToken(): void
+    public function testAnInvalidTokenIsRefusedEvenToPlayAsAGuest(): void
     {
-        $this->requestJson('POST', '/api/games/'.$this->pendu->getId().'/sessions');
+        $this->client->request('POST', '/api/games/'.$this->pendu->getId().'/sessions', server: ['HTTP_AUTHORIZATION' => 'Bearer pas-un-token']);
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -249,6 +249,12 @@ final class GameSessionTest extends ApiTestCase
         self::assertResponseStatusCodeSame(404);
 
         $this->guess($id, 'm', $bob);
+        self::assertResponseStatusCodeSame(404);
+
+        // Ni par un visiteur
+        $this->requestJson('GET', "/api/sessions/$id");
+        self::assertResponseStatusCodeSame(404);
+        $this->requestJson('POST', "/api/sessions/$id/guess", ['letter' => 'm']);
         self::assertResponseStatusCodeSame(404);
     }
 

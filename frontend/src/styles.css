@@ -378,6 +378,25 @@ a.button--ghost:hover {
   padding: 2rem 1rem 3rem;
 }
 
+/* Message affiché une fois en haut de la page (score enregistré après la connexion…) */
+.flash {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 0;
+}
+
+.flash .alert {
+  margin: 0;
+}
+
+.flash + .page {
+  padding-top: 1.25rem;
+}
+
+.flash[hidden] + .page {
+  padding-top: 2rem;
+}
+
 .page__intro {
   margin: 0 0 1.5rem;
   color: var(--color-muted);
@@ -662,6 +681,21 @@ a.game-card:hover .game-card__cta {
 
 .score-save--error {
   color: var(--color-error);
+}
+
+/* Partie gagnée sans compte : proposition d'enregistrer le score */
+.score-save--guest {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.score-save__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .pendu__result .button {

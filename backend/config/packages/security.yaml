@@ -43,6 +43,11 @@ security:
         # Liste des jeux et classements consultables sans être connecté
         - { path: ^/api/games$, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/games/\d+/leaderboard$, roles: PUBLIC_ACCESS, methods: [GET] }
+        # Les jeux se jouent aussi sans compte (un token, s'il est envoyé, est quand même vérifié).
+        # Enregistrer le score d'une partie de visiteur (/claim) demande d'être connecté.
+        - { path: ^/api/games/\d+/sessions$, roles: PUBLIC_ACCESS, methods: [POST] }
+        - { path: '^/api/sessions/[0-9a-f]{32}$', roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: '^/api/sessions/[0-9a-f]{32}/(guess|flip)$', roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

@@ -1,6 +1,7 @@
 import logoUrl from '../assets/logo-catfun.webp';
 import { fetchCurrentUser, isLoggedIn, logout } from '../auth';
 import { navigate } from '../router';
+import { takeFlash } from './flash';
 
 const TEMPLATE = `
   <header class="topbar">
@@ -13,6 +14,7 @@ const TEMPLATE = `
     </nav>
     <div class="topbar__user"></div>
   </header>
+  <div class="flash" hidden></div>
   <main class="page"></main>
 `;
 
@@ -38,6 +40,15 @@ export function renderLayout(container: HTMLElement, current: string): HTMLEleme
     if (link.getAttribute('href') === `#${current}`) {
       link.setAttribute('aria-current', 'page');
     }
+  }
+
+  // Message laissé par la page précédente (ex. score enregistré après la connexion)
+  const flash = takeFlash();
+  if (flash) {
+    const box = container.querySelector<HTMLDivElement>('.flash')!;
+    box.hidden = false;
+    box.innerHTML = `<p class="alert alert--${flash.kind}" role="${flash.kind === 'error' ? 'alert' : 'status'}"></p>`;
+    box.firstElementChild!.textContent = flash.message;
   }
 
   const user = container.querySelector<HTMLDivElement>('.topbar__user')!;

@@ -1,5 +1,7 @@
 import { login, loginErrorMessage } from '../auth';
+import { claimPendingScore } from '../games/pending-score';
 import { navigate } from '../router';
+import { setFlash } from '../ui/flash';
 import {
   clearErrorOnInput,
   hideAlert,
@@ -88,6 +90,11 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
     setLoading(submit, true, 'Se connecter', 'Connexion…');
     try {
       await login(email.value.trim(), password.value);
+      // Partie gagnée juste avant sans être connecté : on enregistre son score maintenant
+      const claimed = await claimPendingScore();
+      if (claimed) {
+        setFlash({ message: claimed.message, kind: claimed.ok ? 'info' : 'error' });
+      }
       navigate(safeRedirect(params.get('redirect'), ['/login', '/register']));
     } catch (error) {
       showAlert(alert, loginErrorMessage(error), 'error');

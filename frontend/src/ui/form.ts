@@ -69,9 +69,13 @@ export function validateEmail(input: HTMLInputElement): string | null {
   return input.validity.typeMismatch ? 'Cette adresse email n’est pas valide.' : null;
 }
 
-/** N'accepte que des chemins internes (#/…) pour éviter les redirections vers un autre site. */
+/**
+ * N'accepte que des chemins internes (#/…) pour éviter les redirections vers un autre site.
+ * Paramètres simples autorisés (ex. /memoire?niveau=facile).
+ */
 export function safeRedirect(redirect: string | null, excluded: string[] = []): string {
-  return redirect && /^\/[\w\-/]*$/.test(redirect) && !excluded.includes(redirect) ? redirect : '/';
+  const valid = redirect !== null && /^\/[\w\-/]*(\?[\w\-=&]*)?$/.test(redirect);
+  return valid && !excluded.includes(redirect.split('?')[0]) ? redirect : '/';
 }
 
 /** Règles du pseudo : les mêmes que le backend (entité User). */

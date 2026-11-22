@@ -10,7 +10,7 @@ const GUEST_INTRO = `
     <img class="hero__logo" src="${logoUrl}" alt="" width="720" height="515">
     <h1 id="home-title">Bienvenue sur CatFun&nbsp;!</h1>
     <p class="hero__text">
-      Des mini-jeux rapides et amusants sur le thème des chats.
+      Des mini-jeux rapides et amusants sur le thème des chats. Joue tout de suite, sans compte&nbsp;!
       Crée ton compte pour enregistrer tes scores et grimper dans le <a href="#/classement">classement</a> 🐾
     </p>
     <div class="hero__actions">
@@ -49,7 +49,7 @@ const GAMES = `
 
 /**
  * Page d'accueil, publique : c'est la première page du site.
- * Un visiteur qui choisit un jeu passe par la connexion, puis revient sur ce jeu.
+ * Un visiteur peut jouer sans compte ; il en faut un pour enregistrer ses scores.
  */
 export function renderHome(container: HTMLElement): void {
   const guest = !isLoggedIn();

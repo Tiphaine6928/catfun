@@ -5,11 +5,22 @@ test.describe('Connexion', () => {
   test('une page protégée renvoie vers la connexion, puis revient après connexion', async ({ page, request }) => {
     const user = await createUser(request);
 
-    await page.goto('/#/pendu');
+    await page.goto('/#/profil');
     await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
-    await expect(page).toHaveURL(/#\/login\?redirect=%2Fpendu$/);
+    await expect(page).toHaveURL(/#\/login\?redirect=%2Fprofil$/);
     await expect(page).toHaveTitle('Connexion · CatFun');
     await expect(page.getByLabel('Email')).toBeFocused();
+
+    await loginWithForm(page, user);
+    await expect(page).toHaveURL(/#\/profil$/);
+    await expect(page.locator('.topbar__pseudo')).toHaveText(user.pseudo);
+  });
+
+  test('« Se connecter » depuis un jeu ramène sur ce jeu', async ({ page, request }) => {
+    const user = await createUser(request);
+    await page.goto('/#/pendu');
+    await page.getByRole('banner').getByRole('link', { name: 'Se connecter' }).click();
+    await expect(page).toHaveURL(/#\/login\?redirect=%2Fpendu$/);
 
     await loginWithForm(page, user);
     await expect(page).toHaveURL(/#\/pendu$/);
@@ -75,7 +86,7 @@ test.describe('Connexion', () => {
 
     // Expiré : supprimé sans appeler le serveur
     await page.evaluate((t) => localStorage.setItem('catfun.token', t), fakeToken(1000));
-    await page.goto('/#/pendu');
+    await page.goto('/#/profil');
     await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
 
     // Pas expiré mais refusé par l'API (signature invalide)

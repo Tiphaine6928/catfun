@@ -10,6 +10,10 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Une partie jouée côté serveur. Son état (mot caché, ordre des cartes…) ne quitte jamais le serveur :
  * le joueur n'en reçoit que la partie visible. Le score est calculé et enregistré par le serveur.
+ *
+ * Un visiteur non connecté peut jouer : la partie n'a alors pas de joueur, et seul celui qui connaît
+ * son identifiant (impossible à deviner) peut la jouer. S'il la gagne, il peut s'inscrire ou se
+ * connecter peu après pour enregistrer son score (voir claim()).
  */
 #[ORM\Entity(repositoryClass: GameSessionRepository::class)]
 #[ORM\Index(name: 'IDX_GAME_SESSION_PLAYER_GAME', columns: ['player_id', 'game_id', 'created_at'])]
@@ -20,9 +24,10 @@ class GameSession
     #[ORM\Column(length: 32)]
     private string $id;
 
+    /** Joueur connecté ; null pour une partie de visiteur. */
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private User $player;
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?User $player;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -52,7 +57,10 @@ class GameSession
     /**
      * @param array<string, mixed> $state
      */
-    public function __construct(User $player, Game $game, ?string $level, array $state)
+    /** Délai pour enregistrer le score d'une partie gagnée en visiteur (le temps de s'inscrire). */
+    public const CLAIM_DELAY = '1 hour';
+
+    public function __construct(?User $player, Game $game, ?string $level, array $state)
     {
         $this->id = bin2hex(random_bytes(16));
         $this->player = $player;
@@ -67,9 +75,44 @@ class GameSession
         return $this->id;
     }
 
-    public function getPlayer(): User
+    public function getPlayer(): ?User
     {
         return $this->player;
+    }
+
+    public function isGuest(): bool
+    {
+        return null === $this->player;
+    }
+
+    /**
+     * Qui peut voir et jouer cette partie : son joueur, ou n'importe qui pour une partie de visiteur
+     * (son identifiant aléatoire, connu seulement du navigateur qui l'a commencée, sert de clé).
+     */
+    public function isPlayableBy(?User $user): bool
+    {
+        return null === $this->player || $this->player->getId() === $user?->getId();
+    }
+
+    /**
+     * Partie de visiteur gagnée il y a moins de CLAIM_DELAY, dont le score n'est pas encore enregistré.
+     */
+    public function isClaimable(\DateTimeImmutable $now = new \DateTimeImmutable()): bool
+    {
+        return $this->isGuest()
+            && GameEngine::WON === $this->status
+            && null === $this->score
+            && null !== $this->finishedAt
+            && $this->finishedAt > $now->modify('-'.self::CLAIM_DELAY);
+    }
+
+    /** Rattache la partie (et son score) au joueur qui vient de s'inscrire ou de se connecter. */
+    public function claim(User $player, Score $score): static
+    {
+        $this->player = $player;
+        $this->score = $score;
+
+        return $this;
     }
 
     public function getGame(): Game

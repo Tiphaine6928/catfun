@@ -2,6 +2,8 @@ import { ApiError, NetworkError } from '../api';
 import { findGame, guessLetter, scoreMessage, startSession, type GameSession, type PenduState } from '../games/api';
 import { createMoveQueue } from '../games/move-queue';
 import penduUrl from '../assets/jeu-pendu.webp';
+import { isLoggedIn } from '../auth';
+import { offerToSaveScore } from '../ui/guest-save';
 import { renderLayout } from '../ui/layout';
 
 /**
@@ -142,7 +144,9 @@ export function renderPendu(container: HTMLElement): () => void {
     try {
       const game = await findGame('Pendu');
       $<HTMLAnchorElement>('.leaderboard-link').setAttribute('href', `#/classement?jeu=${game.id}`);
-      const started = await queue(() => startSession<PenduState>(game.id));
+      // Visiteur : on indique la partie précédente pour ne pas retomber sur le même mot
+      const previous = isLoggedIn() ? null : session?.id;
+      const started = await queue(() => startSession<PenduState>(game.id, undefined, previous));
       if (left) {
         return;
       }
@@ -286,11 +290,16 @@ export function renderPendu(container: HTMLElement): () => void {
     resultTitle.textContent = won ? 'Bravo, tu as trouvé ! Twixy ronronne de joie 🎉' : 'Perdu… Twixy a épuisé ses neuf vies.';
     resultWord.textContent = `Le mot était : ${state.word ?? ''}`;
 
-    if (won && score) {
-      // Score calculé et enregistré par le serveur
-      resultScore.textContent = `Score : ${score.points} points (100 + 20 × ${state.lives} vies restantes + 5 par lettre différente)`;
-      scoreStatus.className = 'score-save score-save--ok';
-      scoreStatus.textContent = scoreMessage(score);
+    // Score calculé par le serveur : enregistré pour un joueur connecté, en attente pour un visiteur
+    const points = score?.points ?? session.unsavedPoints;
+    if (won && points !== null) {
+      resultScore.textContent = `Score : ${points} points (100 + 20 × ${state.lives} vies restantes + 5 par lettre différente)`;
+      if (score) {
+        scoreStatus.className = 'score-save score-save--ok';
+        scoreStatus.textContent = scoreMessage(score);
+      } else {
+        offerToSaveScore(scoreStatus, { sessionId: session.id, game: 'Pendu', level: null, points }, '/pendu');
+      }
     } else {
       resultScore.textContent = 'Pas de points cette fois, retente ta chance !';
       scoreStatus.className = 'score-save';
