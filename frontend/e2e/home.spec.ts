@@ -12,6 +12,10 @@ test.describe('Accueil', () => {
     await expect(page.getByRole('link', { name: /Pendu/ }).last()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Se déconnecter' })).toHaveCount(0);
 
+    // Chaque jeu est présenté par son chat
+    await expect(page.getByRole('link', { name: /Suivre Twixy pour jouer au pendu/ })).toHaveAttribute('href', '#/pendu');
+    await expect(page.getByRole('link', { name: /Suivre Aïna pour jouer au jeu de mémoire/ })).toHaveAttribute('href', '#/memoire');
+
     const hero = page.getByRole('region', { name: 'Bienvenue sur CatFun !' });
     await expect(hero.getByRole('link', { name: 'Créer un compte' })).toHaveAttribute('href', '#/register');
     await expect(hero.getByRole('link', { name: 'Se connecter' })).toHaveAttribute('href', '#/login');

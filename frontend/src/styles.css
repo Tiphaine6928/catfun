@@ -395,6 +395,8 @@ a.button--ghost:hover {
 
 .game-card {
   display: grid;
+  /* image, nom, description (prend la place libre), invitation alignée en bas */
+  grid-template-rows: auto auto 1fr auto;
   gap: 0.35rem;
   height: 100%;
   padding: 1.25rem;
@@ -433,6 +435,17 @@ a.game-card:hover {
 
 .game-card__text {
   color: var(--color-muted);
+}
+
+/* Invitation à suivre le chat du jeu (Twixy, Aïna), en bas de la carte */
+.game-card__cta {
+  margin-top: 0.5rem;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+a.game-card:hover .game-card__cta {
+  text-decoration: underline;
 }
 
 /* ---------- Pendu ---------- */
