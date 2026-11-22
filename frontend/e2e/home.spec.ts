@@ -50,6 +50,16 @@ test.describe('Accueil', () => {
     await expect(page.locator('a.game-card')).toHaveCount(2);
   });
 
+  test('favicon de CatFun servi par le site', async ({ page, request }) => {
+    await page.goto('/');
+    for (const selector of ['link[rel="icon"][href="/favicon.ico"]', 'link[rel="icon"][href="/favicon-192.png"]', 'link[rel="apple-touch-icon"]']) {
+      const href = await page.locator(selector).getAttribute('href');
+      const response = await request.get(href!);
+      expect(response.status(), href!).toBe(200);
+      expect(response.headers()['content-type'], href!).toMatch(/^image\//);
+    }
+  });
+
   test.describe('sur mobile', () => {
     test.use(MOBILE);
 
