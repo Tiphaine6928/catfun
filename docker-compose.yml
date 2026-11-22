@@ -12,10 +12,14 @@ services:
     environment:
       # "db" est le nom du service MySQL ci-dessous, sur le réseau interne de Docker
       DATABASE_URL: "mysql://admin:root@db:3306/catfun?serverVersion=8.0"
+      # Emails (mot de passe oublié) envoyés à Mailpit, lisibles sur http://localhost:8025
+      MAILER_DSN: "smtp://mailpit:1025"
     depends_on:
       db:
         # Attend que MySQL accepte vraiment les connexions (voir healthcheck)
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   frontend:
     build: ./frontend
@@ -45,6 +49,13 @@ services:
       timeout: 5s
       retries: 30
       start_period: 30s
+
+  # Boîte mail de test : attrape tous les emails envoyés par le site (rien ne part vraiment)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: catfun-mailpit
+    ports:
+      - "127.0.0.1:8025:8025"
 
   nginx:
     image: nginx:latest

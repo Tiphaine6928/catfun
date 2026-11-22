@@ -204,6 +204,20 @@ a.button--ghost:hover {
   font-weight: 600;
 }
 
+/* Libellé avec un lien à droite (« Mot de passe oublié ? ») */
+.field__label-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+}
+
+.forgot-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .field input {
   width: 100%;
   min-height: 44px;

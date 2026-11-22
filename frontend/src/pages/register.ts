@@ -10,13 +10,13 @@ import {
   setLoading,
   setupPasswordToggle,
   showAlert,
+  PASSWORD_MIN,
   PSEUDO_MAX,
   PSEUDO_MIN,
   validateEmail,
+  validatePassword,
   validatePseudo,
 } from '../ui/form';
-
-const PASSWORD_MIN = 6;
 
 const TEMPLATE = `
   <main class="auth-page">
@@ -135,13 +135,4 @@ export function renderRegister(container: HTMLElement, params: URLSearchParams):
 
     return first !== null;
   }
-}
-
-
-function validatePassword(value: string): string | null {
-  if (!value) {
-    return 'Merci de choisir un mot de passe.';
-  }
-
-  return value.length < PASSWORD_MIN ? `Le mot de passe doit faire au moins ${PASSWORD_MIN} caractères.` : null;
 }

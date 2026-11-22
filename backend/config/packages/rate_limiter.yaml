@@ -25,3 +25,14 @@ framework:
             policy: sliding_window
             limit: '%env(int:GUEST_GAMES_MAX_PER_HOUR)%'
             interval: '1 hour'
+
+        # « Mot de passe oublié » : demandes par adresse IP…
+        password_reset:
+            policy: sliding_window
+            limit: '%env(int:PASSWORD_RESET_MAX_PER_HOUR)%'
+            interval: '1 hour'
+        # … et emails envoyés par compte (personne ne peut remplir la boîte d'un autre)
+        password_reset_per_email:
+            policy: sliding_window
+            limit: 3
+            interval: '1 hour'

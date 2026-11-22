@@ -2,6 +2,7 @@ import { login, loginErrorMessage } from '../auth';
 import { claimPendingScore } from '../games/pending-score';
 import { navigate } from '../router';
 import { addFlash } from '../ui/flash';
+import { rememberTypedEmail } from './forgot-password';
 import {
   clearErrorOnInput,
   hideAlert,
@@ -30,7 +31,10 @@ const TEMPLATE = `
         </div>
 
         <div class="field">
-          <label for="password">Mot de passe</label>
+          <div class="field__label-row">
+            <label for="password">Mot de passe</label>
+            <a class="forgot-link" href="#/mot-de-passe-oublie">Mot de passe oublié ?</a>
+          </div>
           <div class="password">
             <input id="password" name="password" type="password" autocomplete="current-password" required>
             <button type="button" class="password__toggle" aria-controls="password" aria-pressed="false">Afficher</button>
@@ -76,6 +80,12 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
   if (params.get('expired') === '1') {
     showAlert(alert, 'Ta session a expiré, reconnecte-toi.', 'info');
   }
+  if (params.get('motdepasse') === '1') {
+    showAlert(alert, 'Ton mot de passe a bien été changé ✓ Connecte-toi avec ton nouveau mot de passe.', 'info');
+  }
+  // L'email déjà tapé suit vers « Mot de passe oublié »
+  container.querySelector('.forgot-link')!.addEventListener('click', () => rememberTypedEmail(email.value.trim()));
+
   if (params.get('inscrit') === '1') {
     showAlert(alert, 'Ton inscription a bien été prise en compte ✓ Connecte-toi pour commencer à jouer.', 'info');
     if (registeredEmail) {

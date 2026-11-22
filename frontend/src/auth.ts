@@ -43,6 +43,23 @@ export async function register(email: string, pseudo: string, password: string):
   return { user, pseudo: saved };
 }
 
+/**
+ * « Mot de passe oublié » : demande l'envoi d'un lien par email.
+ * Renvoie le message du serveur (le même, que l'email ait un compte ou non).
+ */
+export async function requestPasswordReset(email: string): Promise<string> {
+  const { message } = await apiFetch<{ message: string }>('/api/password/forgot', { method: 'POST', body: { email }, auth: false });
+  return message;
+}
+
+/**
+ * Choisit un nouveau mot de passe avec le jeton reçu par email.
+ * Lève ApiError 410 si le lien a expiré ou a déjà servi, 422 si le mot de passe ne respecte pas les règles.
+ */
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await apiFetch('/api/password/reset', { method: 'POST', body: { token, password }, auth: false });
+}
+
 export function logout(): void {
   clearToken();
   currentUser = null;

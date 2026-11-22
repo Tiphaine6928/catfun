@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\User;
+use App\Security\PasswordRules;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -13,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
@@ -73,15 +73,8 @@ class RegistrationController extends AbstractController
             ->setEmail($data['email'])
             ->setPseudo($data['pseudo']);
 
-        // Mêmes règles que le formulaire d'inscription Symfony
-        $passwordViolations = $validator->validate($data['password'], [
-            new Assert\NotBlank(message: 'Merci de saisir un mot de passe.'),
-            new Assert\Length(
-                min: 6,
-                max: 4096,
-                minMessage: 'Le mot de passe doit faire au moins {{ limit }} caractères.',
-            ),
-        ]);
+        // Mêmes règles qu'au changement de mot de passe
+        $passwordViolations = $validator->validate($data['password'], PasswordRules::constraints());
         foreach ($passwordViolations as $violation) {
             $errors['password'] ??= (string) $violation->getMessage();
         }

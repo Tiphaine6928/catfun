@@ -1,5 +1,6 @@
 import { devices, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
+import { createHash, randomBytes } from 'node:crypto';
 import { API_URL, BACKEND_DIR } from '../playwright.config';
 
 export { API_URL };
@@ -118,4 +119,20 @@ export async function winPenduViaApi(request: APIRequestContext, user: TestUser)
     last = await (await request.post(`${API_URL}/api/sessions/${id}/guess`, { headers, data: { letter } })).json();
   }
   expect(last.status).toBe('won');
+}
+
+/**
+ * Crée un lien « nouveau mot de passe » pour ce compte, directement en base de test
+ * (en test, aucun email ne part). Renvoie le jeton à mettre dans l'URL.
+ */
+export function createResetToken(user: TestUser, expired = false): string {
+  const token = randomBytes(32).toString('hex');
+  const hash = createHash('sha256').update(token).digest('hex');
+  const expiresAt = expired ? 'NOW() - INTERVAL 1 MINUTE' : 'NOW() + INTERVAL 1 HOUR';
+  const sql =
+    'INSERT INTO reset_password_request (user_id, token_hash, expires_at, created_at) ' +
+    `SELECT u.id, ${quote(hash)}, ${expiresAt}, NOW() FROM user u WHERE u.email = ${quote(user.email)}`;
+  execFileSync('php', ['bin/console', 'dbal:run-sql', '--env=test', '--no-interaction', sql], { cwd: BACKEND_DIR, stdio: 'pipe' });
+
+  return token;
 }

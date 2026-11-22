@@ -68,6 +68,8 @@ docker compose exec backend php bin/console doctrine:migrations:migrate
 
 - API (Symfony via nginx) : http://localhost:8082/api/… (ouvrir http://localhost:8082 renvoie vers le site)
 - Frontend : http://localhost:8081
+- Emails envoyés par le site (mot de passe oublié) : http://localhost:8025 (Mailpit, une boîte mail
+  de test qui attrape tous les emails : rien ne part vraiment)
 - Base MySQL (pour un outil comme DBeaver ou MySQL Workbench) : `127.0.0.1`, port **3307**,
   utilisateur `admin`, mot de passe `root`. Le port 3307 évite le conflit avec un MySQL déjà
   installé sur ta machine (qui utilise 3306).

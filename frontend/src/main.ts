@@ -9,11 +9,13 @@ import { setUnauthorizedHandler } from './api';
 import { isLoggedIn, logout } from './auth';
 import { renderHome } from './pages/home';
 import { renderLeaderboard } from './pages/leaderboard';
+import { renderForgotPassword } from './pages/forgot-password';
 import { renderLogin } from './pages/login';
 import { renderMemoire } from './pages/memoire';
 import { renderPendu } from './pages/pendu';
 import { renderProfile } from './pages/profile';
 import { renderRegister } from './pages/register';
+import { renderResetPassword } from './pages/reset-password';
 import { navigate, startRouter } from './router';
 
 const app = document.getElementById('app');
@@ -41,5 +43,7 @@ startRouter({
     '/profil': { title: 'Mon profil', render: renderProfile, requiresAuth: true },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },
     '/register': { title: 'Créer un compte', render: renderRegister, guestOnly: true },
+    '/mot-de-passe-oublie': { title: 'Mot de passe oublié', render: renderForgotPassword, guestOnly: true },
+    '/nouveau-mot-de-passe': { title: 'Nouveau mot de passe', render: renderResetPassword, guestOnly: true },
   },
 });

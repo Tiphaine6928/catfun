@@ -40,6 +40,7 @@ security:
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register$, roles: PUBLIC_ACCESS, methods: [POST] }
+        - { path: ^/api/password/(forgot|reset)$, roles: PUBLIC_ACCESS, methods: [POST] }
         # Liste des jeux et classements consultables sans être connecté
         - { path: ^/api/games$, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/games/\d+/leaderboard$, roles: PUBLIC_ACCESS, methods: [GET] }

@@ -98,3 +98,15 @@ export function validatePseudo(input: string): string | null {
 
   return PSEUDO_PATTERN.test(value) ? null : 'Le pseudo ne peut contenir que des lettres, des chiffres, « _ » et « - ».';
 }
+
+/** Règle du mot de passe : la même que le backend (PasswordRules). */
+export const PASSWORD_MIN = 6;
+
+/** Message d'erreur pour un nouveau mot de passe (null si valide). */
+export function validatePassword(value: string): string | null {
+  if (!value) {
+    return 'Merci de choisir un mot de passe.';
+  }
+
+  return value.length < PASSWORD_MIN ? `Le mot de passe doit faire au moins ${PASSWORD_MIN} caractères.` : null;
+}
