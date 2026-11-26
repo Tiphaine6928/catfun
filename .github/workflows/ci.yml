@@ -1,9 +1,14 @@
-# Intégration continue : à chaque push et à chaque pull request, GitHub lance les trois suites de tests.
+# Intégration continue : à chaque push et à chaque pull request, GitHub lance les trois suites de tests
+# et vérifie qu'aucune dépendance n'a de faille connue.
+# Chaque lundi, cette vérification est aussi relancée seule : de nouvelles failles sont publiées
+# régulièrement, même quand le code ne change pas.
 name: CI
 
 on:
   push:
   pull_request:
+  schedule:
+    - cron: '17 6 * * 1'
 
 # Un nouveau push sur la même branche annule l'exécution précédente, devenue inutile
 concurrency:
@@ -21,8 +26,34 @@ env:
   DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/catfun?serverVersion=8.0'
 
 jobs:
+  audit:
+    name: Sécurité des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Lit composer.lock et package-lock.json : pas besoin d'installer les paquets.
+      # Un paquet abandonné (sans faille connue, ex. doctrine/cache) est signalé sans faire échouer.
+      - name: Backend (composer audit)
+        working-directory: backend
+        run: composer audit --locked --abandoned=report
+
+      - name: Frontend (npm audit)
+        working-directory: frontend
+        run: npm audit
+
   backend:
     name: Backend (PHPUnit)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -78,6 +109,7 @@ jobs:
 
   frontend:
     name: Frontend (build + Vitest)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -102,6 +134,7 @@ jobs:
 
   e2e:
     name: Bout en bout (Playwright)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     services:
       mysql:

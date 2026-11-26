@@ -205,14 +205,19 @@ Si le site est un jour placé derrière un autre proxy (hébergeur, CDN), il fau
 
 ### Intégration continue (GitHub Actions)
 
-À chaque push et à chaque pull request, GitHub lance automatiquement trois tâches
+À chaque push et à chaque pull request, GitHub lance automatiquement quatre tâches
 (fichier `.github/workflows/ci.yml`) :
 
 | Tâche | Ce qu'elle vérifie |
 |---|---|
+| Sécurité des dépendances | aucune faille connue dans les paquets PHP (`composer audit`) et JavaScript (`npm audit`) |
 | Backend | `composer.json`, schéma de la base, configuration, tests PHPUnit (PHP 8.4, MySQL 8.0) |
 | Frontend | types TypeScript, build Vite, tests Vitest (Node 22) |
 | Bout en bout | tests Playwright dans Chromium, contre le vrai backend et MySQL |
+
+La vérification des failles est aussi relancée seule **chaque lundi** : de nouvelles failles sont
+publiées régulièrement, même quand le code ne change pas. Si elle devient rouge, mettre à jour les
+paquets concernés (`composer update <paquet>` ou `npm update <paquet>`), puis relancer les tests.
 
 Les résultats sont visibles dans l'onglet **Actions** du dépôt GitHub, et à côté de chaque commit
 (✓ vert ou ✗ rouge). En cas d'échec des tests de bout en bout, le rapport Playwright et les captures
