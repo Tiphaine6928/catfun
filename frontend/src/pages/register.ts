@@ -60,6 +60,11 @@ const TEMPLATE = `
         </button>
       </form>
 
+      <p class="card__legal">
+        En créant un compte, tu acceptes que CatFun garde ton email, ton pseudo et tes scores
+        comme expliqué dans la page <a href="#/confidentialite">Confidentialité</a>.
+      </p>
+
       <p class="card__footer">
         Déjà un compte ? <a class="login-link" href="#/login">Se connecter</a>
       </p>

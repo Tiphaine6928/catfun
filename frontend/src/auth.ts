@@ -60,6 +60,20 @@ export async function resetPassword(token: string, password: string): Promise<vo
   await apiFetch('/api/password/reset', { method: 'POST', body: { token, password }, auth: false });
 }
 
+/** Toutes les données du compte (droit d'accès et de portabilité), telles que renvoyées par le serveur. */
+export function exportMyData(): Promise<unknown> {
+  return apiFetch<unknown>('/api/me/export');
+}
+
+/**
+ * Supprime définitivement le compte et toutes ses données, puis déconnecte.
+ * Lève ApiError 422 si le mot de passe est incorrect.
+ */
+export async function deleteAccount(password: string): Promise<void> {
+  await apiFetch('/api/me', { method: 'DELETE', body: { password } });
+  logout();
+}
+
 export function logout(): void {
   clearToken();
   currentUser = null;

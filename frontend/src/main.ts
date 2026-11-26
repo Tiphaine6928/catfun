@@ -13,6 +13,7 @@ import { renderForgotPassword } from './pages/forgot-password';
 import { renderLogin } from './pages/login';
 import { renderMemoire } from './pages/memoire';
 import { renderPendu } from './pages/pendu';
+import { renderPrivacy } from './pages/privacy';
 import { renderProfile } from './pages/profile';
 import { renderRegister } from './pages/register';
 import { renderResetPassword } from './pages/reset-password';
@@ -41,6 +42,7 @@ startRouter({
     '/memoire': { title: 'Mémoire', render: renderMemoire },
     '/classement': { title: 'Classement', render: renderLeaderboard },
     '/profil': { title: 'Mon profil', render: renderProfile, requiresAuth: true },
+    '/confidentialite': { title: 'Confidentialité', render: renderPrivacy },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },
     '/register': { title: 'Créer un compte', render: renderRegister, guestOnly: true },
     '/mot-de-passe-oublie': { title: 'Mot de passe oublié', render: renderForgotPassword, guestOnly: true },

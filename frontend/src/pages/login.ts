@@ -50,6 +50,7 @@ const TEMPLATE = `
       <p class="card__footer">
         Pas encore de compte ? <a class="register-link" href="#/register">Créer un compte</a>
       </p>
+      <p class="card__legal"><a href="#/confidentialite">Confidentialité</a></p>
     </section>
   </main>
 `;

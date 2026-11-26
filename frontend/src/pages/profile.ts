@@ -3,13 +3,14 @@ import { fetchCurrentUser, loginErrorMessage, updatePseudo } from '../auth';
 import { fetchMyHistory, fetchMyStats, GAME_PAGES, levelLabel, type GameStats, type HistoryEntry } from '../games/api';
 import { clearErrorOnInput, PSEUDO_MAX, PSEUDO_MIN, setFieldError, setLoading, validatePseudo } from '../ui/form';
 import { renderLayout, setTopbarPseudo } from '../ui/layout';
+import { renderMyDataSection } from './profile-data';
 
 const HISTORY_SIZE = 10;
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 
 const TEMPLATE = `
   <h1>Mon profil</h1>
-  <p class="page__intro">Ton compte, tes records et tes dernières parties.</p>
+  <p class="page__intro">Ton compte, tes records, tes dernières parties et tes données.</p>
 
   <section class="profile-section" aria-labelledby="account-title">
     <h2 id="account-title">Mon compte</h2>
@@ -46,6 +47,7 @@ const TEMPLATE = `
 export function renderProfile(container: HTMLElement): void {
   const page = renderLayout(container, '/profil');
   page.innerHTML = TEMPLATE;
+  page.append(renderMyDataSection());
 
   const form = page.querySelector<HTMLFormElement>('.profile__form')!;
   const pseudo = form.querySelector<HTMLInputElement>('#pseudo')!;

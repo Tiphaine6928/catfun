@@ -16,6 +16,9 @@ const TEMPLATE = `
   </header>
   <div class="flash" hidden></div>
   <main class="page"></main>
+  <footer class="site-footer">
+    <a href="#/confidentialite">Confidentialité</a>
+  </footer>
 `;
 
 const USER_TEMPLATE = `
