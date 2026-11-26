@@ -33,4 +33,15 @@ class ResetPasswordRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /** Supprime les liens expirés. @return int nombre de liens supprimés */
+    public function deleteExpired(\DateTimeImmutable $now = new \DateTimeImmutable()): int
+    {
+        return $this->createQueryBuilder('r')
+            ->delete()
+            ->andWhere('r.expiresAt <= :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->execute();
+    }
 }

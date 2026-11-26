@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -65,9 +66,44 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Score::class, mappedBy: 'player')]
     private Collection $scores;
 
+    /** Dernière connexion (ou inscription) : un compte inactif trop longtemps est supprimé (RGPD). */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private \DateTimeImmutable $lastLoginAt;
+
+    /** Date de l'email prévenant que le compte inactif va être supprimé ; null si pas prévenu. */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $inactivityNoticeSentAt = null;
+
     public function __construct()
     {
         $this->scores = new ArrayCollection();
+        $this->lastLoginAt = new \DateTimeImmutable();
+    }
+
+    public function getLastLoginAt(): \DateTimeImmutable
+    {
+        return $this->lastLoginAt;
+    }
+
+    /** Connexion réussie : le compte est de nouveau actif, l'avertissement éventuel est annulé. */
+    public function recordLogin(\DateTimeImmutable $at = new \DateTimeImmutable()): static
+    {
+        $this->lastLoginAt = $at;
+        $this->inactivityNoticeSentAt = null;
+
+        return $this;
+    }
+
+    public function getInactivityNoticeSentAt(): ?\DateTimeImmutable
+    {
+        return $this->inactivityNoticeSentAt;
+    }
+
+    public function markInactivityNoticeSent(\DateTimeImmutable $at = new \DateTimeImmutable()): static
+    {
+        $this->inactivityNoticeSentAt = $at;
+
+        return $this;
     }
 
     public function getId(): ?int

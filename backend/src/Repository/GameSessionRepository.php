@@ -47,6 +47,25 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Supprime les parties de joueurs connectés commencées avant cette date et jamais terminées
+     * (abandonnées). Les parties terminées restent : elles comptent dans le profil.
+     *
+     * @return int nombre de parties supprimées
+     */
+    public function deleteAbandonedBefore(\DateTimeImmutable $before): int
+    {
+        return $this->createQueryBuilder('s')
+            ->delete()
+            ->andWhere('s.player IS NOT NULL')
+            ->andWhere('s.status = :playing')
+            ->andWhere('s.createdAt < :before')
+            ->setParameter('playing', GameEngine::PLAYING)
+            ->setParameter('before', $before)
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
      * Supprime les parties de visiteurs commencées avant cette date (leur score ne peut plus être enregistré).
      *
      * @return int nombre de parties supprimées

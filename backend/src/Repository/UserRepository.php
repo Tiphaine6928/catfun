@@ -33,28 +33,36 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Comptes sans connexion depuis cette date, pas encore prévenus de leur suppression.
+     *
+     * @return list<User>
+     */
+    public function findInactiveNotYetNotified(\DateTimeImmutable $lastLoginBefore): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.lastLoginAt < :before')
+            ->andWhere('u.inactivityNoticeSentAt IS NULL')
+            ->setParameter('before', $lastLoginBefore)
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Supprime les comptes prévenus avant cette date et pas reconnectés depuis
+     * (une connexion efface l'avertissement). Scores, parties et liens partent avec (ON DELETE CASCADE).
+     *
+     * @return int nombre de comptes supprimés
+     */
+    public function deleteNotifiedBefore(\DateTimeImmutable $notifiedBefore): int
+    {
+        return $this->createQueryBuilder('u')
+            ->delete()
+            ->andWhere('u.inactivityNoticeSentAt IS NOT NULL')
+            ->andWhere('u.inactivityNoticeSentAt < :before')
+            ->setParameter('before', $notifiedBefore)
+            ->getQuery()
+            ->execute();
+    }
 }

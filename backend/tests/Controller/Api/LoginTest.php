@@ -35,6 +35,33 @@ final class LoginTest extends ApiTestCase
         self::assertSame('Félix', json_decode((string) $this->client->getResponse()->getContent(), true)['pseudo']);
     }
 
+    public function testALoginIsRecordedAndCancelsAnInactivityWarning(): void
+    {
+        // Compte inactif depuis longtemps, déjà prévenu de sa suppression
+        $this->em->getConnection()->executeStatement(
+            'UPDATE user SET last_login_at = ?, inactivity_notice_sent_at = ?',
+            [(new \DateTimeImmutable('-3 years'))->format('Y-m-d H:i:s'), (new \DateTimeImmutable('-1 day'))->format('Y-m-d H:i:s')],
+        );
+        $this->em->clear(); // la requête relit le compte en base
+
+        $this->requestJson('POST', '/api/login', ['email' => self::EMAIL, 'password' => self::PASSWORD]);
+        self::assertResponseIsSuccessful();
+
+        $row = $this->em->getConnection()->fetchAssociative('SELECT last_login_at, inactivity_notice_sent_at FROM user');
+        self::assertGreaterThan(new \DateTimeImmutable('-1 minute'), new \DateTimeImmutable($row['last_login_at']));
+        self::assertNull($row['inactivity_notice_sent_at']);
+    }
+
+    public function testAFailedLoginIsNotRecorded(): void
+    {
+        $longAgo = (new \DateTimeImmutable('-1 year'))->format('Y-m-d H:i:s');
+        $this->em->getConnection()->executeStatement('UPDATE user SET last_login_at = ?', [$longAgo]);
+
+        $this->requestJson('POST', '/api/login', ['email' => self::EMAIL, 'password' => 'mauvais']);
+
+        self::assertSame($longAgo, $this->em->getConnection()->fetchOne('SELECT last_login_at FROM user'));
+    }
+
     public function testTheEmailIsNotCaseSensitive(): void
     {
         $this->requestJson('POST', '/api/login', ['email' => strtoupper(self::EMAIL), 'password' => self::PASSWORD]);

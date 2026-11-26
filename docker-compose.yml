@@ -21,6 +21,33 @@ services:
       mailpit:
         condition: service_started
 
+  # Tâches planifiées : applique les durées de conservation des données (RGPD) une fois par jour
+  # (parties de visiteurs, liens expirés, parties abandonnées, comptes inactifs : voir app:data:purge)
+  cron:
+    build: ./backend
+    container_name: catfun-cron
+    # Même utilisateur que PHP-FPM : le cache de Symfony reste accessible aux deux
+    user: www-data
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_var:/var/www/html/var
+    environment:
+      DATABASE_URL: "mysql://admin:root@db:3306/catfun?serverVersion=8.0"
+      MAILER_DSN: "smtp://mailpit:1025"
+    depends_on:
+      - backend
+    # Le conteneur backend installe les dépendances et crée .env.local : on attend qu'il ait fini
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        until [ -f vendor/autoload_runtime.php ] && [ -f .env.local ]; do sleep 5; done
+        sleep 30
+        while true; do
+          php bin/console app:data:purge --no-interaction || echo "Échec du nettoyage, nouvel essai dans 24 h"
+          sleep 86400
+        done
+
   frontend:
     build: ./frontend
     container_name: catfun-frontend

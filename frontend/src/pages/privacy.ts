@@ -44,6 +44,7 @@ export function renderPrivacy(container: HTMLElement): void {
         <li>Tu peux jouer <strong>sans compte</strong> : on ne te demande rien.</li>
         <li>Avec un compte, on garde seulement ton <strong>email</strong>, ton <strong>pseudo</strong>, ton <strong>mot de passe</strong> (chiffré) et tes <strong>parties</strong>.</li>
         <li>Pas de publicité, pas de revente, pas de cookie, pas de mouchard.</li>
+        <li>Un compte sans connexion depuis 3 ans est supprimé, après un email de rappel.</li>
         <li>Tu peux <strong>télécharger</strong> tes données ou <strong>supprimer ton compte</strong> à tout moment, depuis <a href="#/profil">Mon profil</a>.</li>
       </ul>
 
@@ -57,17 +58,20 @@ export function renderPrivacy(container: HTMLElement): void {
             <tr><th scope="col">Donnée</th><th scope="col">À quoi elle sert</th><th scope="col">Combien de temps</th></tr>
           </thead>
           <tbody>
-            <tr><td>Email</td><td>Te connecter, et t'envoyer un lien si tu oublies ton mot de passe. Il n'est jamais affiché aux autres joueurs.</td><td>Tant que ton compte existe</td></tr>
-            <tr><td>Pseudo</td><td>T'identifier dans les classements (il est public).</td><td>Tant que ton compte existe</td></tr>
-            <tr><td>Mot de passe</td><td>Te connecter. Il est chiffré de façon irréversible : personne ne peut le lire, même pas nous.</td><td>Tant que ton compte existe</td></tr>
-            <tr><td>Scores et parties</td><td>Faire fonctionner les jeux, ton profil et les classements (ton pseudo et tes meilleurs scores sont publics).</td><td>Tant que ton compte existe</td></tr>
+            <tr><td>Email</td><td>Te connecter, t'envoyer un lien si tu oublies ton mot de passe, et te prévenir avant de supprimer un compte inactif. Il n'est jamais affiché aux autres joueurs.</td><td rowspan="4">Tant que ton compte existe, et au plus <strong>3 ans sans connexion</strong> : un email te prévient un mois avant la suppression, et il suffit de te connecter pour garder ton compte</td></tr>
+            <tr><td>Pseudo</td><td>T'identifier dans les classements (il est public).</td></tr>
+            <tr><td>Mot de passe</td><td>Te connecter. Il est chiffré de façon irréversible : personne ne peut le lire, même pas nous.</td></tr>
+            <tr><td>Scores et parties terminées</td><td>Faire fonctionner les jeux, ton profil et les classements (ton pseudo et tes meilleurs scores sont publics).</td></tr>
+            <tr><td>Date de dernière connexion</td><td>Savoir si ton compte est encore utilisé.</td><td>Comme ton compte</td></tr>
+            <tr><td>Parties commencées mais jamais finies</td><td>Te laisser reprendre une partie.</td><td>30 jours</td></tr>
             <tr><td>Parties jouées sans compte</td><td>Te laisser enregistrer ton score si tu crées un compte juste après.</td><td>1 jour au plus</td></tr>
-            <tr><td>Lien « mot de passe oublié »</td><td>Te laisser choisir un nouveau mot de passe.</td><td>1 heure</td></tr>
+            <tr><td>Lien « mot de passe oublié »</td><td>Te laisser choisir un nouveau mot de passe.</td><td>1 heure (supprimé ensuite)</td></tr>
             <tr><td>Adresse IP</td><td>Bloquer les abus (trop de tentatives de connexion, d'inscription…).</td><td>1 heure au plus pour les compteurs anti-abus</td></tr>
             <tr><td>Journaux du serveur</td><td>Comprendre et corriger les pannes, repérer les attaques (ils contiennent les adresses IP et les pages demandées).</td><td>${setting(LEGAL.logsRetention)}</td></tr>
           </tbody>
         </table>
       </div>
+      <p>Ces durées sont appliquées automatiquement, chaque jour.</p>
       <p>Base légale : ces données sont nécessaires pour te fournir le service que tu demandes en créant un compte (exécution du contrat). La protection contre les abus repose sur notre intérêt légitime à garder le site sûr.</p>
 
       <h2>Qui y a accès ?</h2>
