@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\User;
+use App\Repository\EmailChangeRequestRepository;
 use App\Repository\GameSessionRepository;
 use App\Repository\ResetPasswordRequestRepository;
 use App\Repository\UserRepository;
@@ -26,6 +27,7 @@ use Symfony\Component\Mime\Email;
  *
  * - parties de visiteurs : supprimées après 1 jour
  * - liens « mot de passe oublié » : supprimés une fois expirés (1 heure)
+ * - liens de confirmation d'un changement d'email : supprimés une fois expirés (24 heures)
  * - parties abandonnées (jamais terminées) : supprimées après 30 jours
  * - comptes sans connexion depuis ACCOUNT_INACTIVITY_LIMIT (3 ans) : prévenus par email,
  *   puis supprimés ACCOUNT_DELETION_NOTICE plus tard (30 jours) s'ils ne se sont pas reconnectés
@@ -39,6 +41,7 @@ class PurgeDataCommand extends Command
     public function __construct(
         private readonly GameSessionRepository $sessions,
         private readonly ResetPasswordRequestRepository $resetRequests,
+        private readonly EmailChangeRequestRepository $emailChangeRequests,
         private readonly UserRepository $users,
         private readonly EntityManagerInterface $entityManager,
         private readonly MailerInterface $mailer,
@@ -57,7 +60,7 @@ class PurgeDataCommand extends Command
         $now = new \DateTimeImmutable();
 
         $guests = $this->sessions->deleteGuestSessionsBefore($now->modify('-'.self::GUEST_SESSIONS_KEPT));
-        $links = $this->resetRequests->deleteExpired($now);
+        $links = $this->resetRequests->deleteExpired($now) + $this->emailChangeRequests->deleteExpired($now);
         $abandoned = $this->sessions->deleteAbandonedBefore($now->modify('-'.self::ABANDONED_GAMES_KEPT));
 
         // D'abord supprimer les comptes prévenus il y a assez longtemps, puis prévenir les nouveaux
@@ -79,7 +82,7 @@ class PurgeDataCommand extends Command
 
         $io->definitionList(
             ['Parties de visiteurs supprimées' => $guests],
-            ['Liens « mot de passe oublié » expirés supprimés' => $links],
+            ['Liens expirés supprimés (mot de passe, email)' => $links],
             ['Parties abandonnées supprimées' => $abandoned],
             ['Comptes inactifs prévenus' => $notified],
             ['Comptes inactifs supprimés' => $deleted],

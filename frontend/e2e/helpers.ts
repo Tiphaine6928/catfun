@@ -136,3 +136,19 @@ export function createResetToken(user: TestUser, expired = false): string {
 
   return token;
 }
+
+/**
+ * Crée un lien de confirmation de changement d'email pour ce compte, directement en base de test
+ * (en test, aucun email ne part). Renvoie le jeton à mettre dans l'URL.
+ */
+export function createEmailChangeToken(user: TestUser, newEmail: string): string {
+  const token = randomBytes(32).toString('hex');
+  const hash = createHash('sha256').update(token).digest('hex');
+  const sql =
+    'INSERT INTO email_change_request (user_id, new_email, token_hash, expires_at, created_at) ' +
+    `SELECT u.id, ${quote(newEmail)}, ${quote(hash)}, NOW() + INTERVAL 1 DAY, NOW() FROM user u WHERE u.email = ${quote(user.email)}`;
+  execFileSync('php', ['bin/console', 'dbal:run-sql', '--env=test', '--no-interaction', sql], { cwd: BACKEND_DIR, stdio: 'pipe' });
+
+  return token;
+}
+

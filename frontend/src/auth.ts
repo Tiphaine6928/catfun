@@ -74,6 +74,26 @@ export async function deleteAccount(password: string): Promise<void> {
   logout();
 }
 
+/**
+ * Demande à changer d'email : un lien de confirmation part vers la nouvelle adresse.
+ * Renvoie le message du serveur. Lève ApiError 422 (email invalide ou pris, mot de passe incorrect).
+ */
+export async function requestEmailChange(email: string, password: string): Promise<string> {
+  const { message } = await apiFetch<{ message: string }>('/api/me/email', { method: 'POST', body: { email, password } });
+  return message;
+}
+
+/**
+ * Confirme le changement d'email avec le jeton du lien, puis déconnecte (l'ancienne session
+ * est liée à l'ancienne adresse). Renvoie la nouvelle adresse.
+ * Lève ApiError 410 (lien expiré ou déjà utilisé) ou 409 (adresse prise entre-temps).
+ */
+export async function confirmEmailChange(token: string): Promise<string> {
+  const { email } = await apiFetch<{ email: string }>('/api/email/confirm', { method: 'POST', body: { token }, auth: false });
+  logout();
+  return email;
+}
+
 export function logout(): void {
   clearToken();
   currentUser = null;

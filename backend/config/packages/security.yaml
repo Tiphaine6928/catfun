@@ -41,6 +41,8 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/password/(forgot|reset)$, roles: PUBLIC_ACCESS, methods: [POST] }
+        # Confirmation d'un changement d'email : le jeton du lien suffit (on n'est pas forcément connecté)
+        - { path: ^/api/email/confirm$, roles: PUBLIC_ACCESS, methods: [POST] }
         # Liste des jeux et classements consultables sans être connecté
         - { path: ^/api/games$, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/games/\d+/leaderboard$, roles: PUBLIC_ACCESS, methods: [GET] }

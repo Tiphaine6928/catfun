@@ -42,3 +42,9 @@ framework:
             policy: fixed_window
             limit: 5
             interval: '15 minutes'
+
+        # Changement d'email : demandes (et mots de passe essayés) par compte
+        email_change:
+            policy: fixed_window
+            limit: 5
+            interval: '1 hour'

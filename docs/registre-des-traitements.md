@@ -50,16 +50,16 @@ aucune publicité, aucune revente. Aucun cookie ni traceur : rien à faire figur
 
 | | |
 |---|---|
-| Finalités | Créer un compte, se connecter, modifier son pseudo, se déconnecter |
+| Finalités | Créer un compte, se connecter, modifier son pseudo ou son email, se déconnecter |
 | Base légale | Exécution du contrat (art. 6.1.b) : le joueur demande un compte pour enregistrer ses scores |
 | Personnes concernées | Joueurs qui créent un compte (le site peut être utilisé par des mineurs : textes rédigés simplement) |
-| Données | Email, pseudo (public), mot de passe chiffré, rôles techniques, date de dernière connexion, date de l'email d'avertissement d'inactivité |
+| Données | Email, pseudo (public), mot de passe chiffré, rôles techniques, date de dernière connexion, date de l'email d'avertissement d'inactivité ; pendant un changement d'email : la nouvelle adresse et l'empreinte du jeton du lien de confirmation |
 | Source | Le joueur (formulaire d'inscription) ; la date de connexion est enregistrée par le serveur |
 | Destinataires | Personnes qui administrent CatFun ; hébergeur (sous-traitant, voir § 4). Le pseudo est visible de tous dans les classements ; l'email n'est jamais affiché aux autres |
 | Transferts hors UE | Aucun prévu — **⚠ À vérifier** selon l'hébergeur choisi |
-| Conservation | Tant que le compte existe. Supprimé à la demande (« Supprimer mon compte ») ou après 3 ans sans connexion (voir T5) |
-| Sécurité | Mot de passe chiffré de façon irréversible (algorithme recommandé par Symfony : bcrypt ou Argon2id) ; email et pseudo uniques ; jeton de connexion JWT signé, valable 1 heure, gardé dans le navigateur (localStorage) ; limites de tentatives (voir T6) |
-| Dans le code | `backend/src/Entity/User.php`, `RegistrationController`, `UserController`, `EventListener/RecordLoginListener.php` |
+| Conservation | Tant que le compte existe. Supprimé à la demande (« Supprimer mon compte ») ou après 3 ans sans connexion (voir T5). Demande de changement d'email : 24 heures (supprimée à la confirmation ou, une fois expirée, par le nettoyage quotidien) |
+| Sécurité | Mot de passe chiffré de façon irréversible (algorithme recommandé par Symfony : bcrypt ou Argon2id) ; email et pseudo uniques ; jeton de connexion JWT signé, valable 1 heure, gardé dans le navigateur (localStorage) ; limites de tentatives (voir T6). Changement d'email : mot de passe demandé, nouvelle adresse confirmée par un lien à usage unique (seule l'empreinte SHA-256 du jeton est gardée), ancienne adresse prévenue, reconnexion obligatoire ensuite |
+| Dans le code | `backend/src/Entity/User.php`, `RegistrationController`, `UserController`, `EmailChangeController`, `Entity/EmailChangeRequest.php`, `EventListener/RecordLoginListener.php` |
 
 ### T2 — Parties, scores et classements
 
@@ -125,7 +125,7 @@ aucune publicité, aucune revente. Aucun cookie ni traceur : rien à faire figur
 | Données | Adresse IP et compteurs de tentatives (par IP, par compte) ; journaux techniques du serveur (adresse IP, page demandée, date, erreurs) |
 | Destinataires | Personnes qui administrent CatFun ; hébergeur |
 | Conservation | Compteurs : 1 heure au plus. Journaux du serveur : **⚠ À compléter** (la CNIL recommande de 6 mois à 1 an), à régler chez l'hébergeur |
-| Limites en place | Connexion : 5 échecs par quart d'heure pour un compte et une IP, 25 par IP ; inscription : 10 par heure et par IP ; mot de passe oublié : 10 par heure et par IP ; suppression de compte : 5 essais par quart d'heure ; parties sans compte : 200 par heure et par IP |
+| Limites en place | Connexion : 5 échecs par quart d'heure pour un compte et une IP, 25 par IP ; inscription : 10 par heure et par IP ; mot de passe oublié : 10 par heure et par IP ; suppression de compte : 5 essais par quart d'heure ; changement d'email : 5 demandes par heure et par compte ; parties sans compte : 200 par heure et par IP |
 | Dans le code | `config/packages/rate_limiter.yaml`, `config/packages/security.yaml`, `config/packages/monolog.yaml` |
 
 ### T7 — Exercice des droits
@@ -134,10 +134,10 @@ aucune publicité, aucune revente. Aucun cookie ni traceur : rien à faire figur
 |---|---|
 | Finalités | Répondre aux demandes des joueurs sur leurs données |
 | Base légale | Obligation légale (art. 6.1.c ; art. 15 à 21) |
-| Moyens | Accès et portabilité : « Télécharger mes données » (Mon profil, fichier JSON). Rectification : pseudo modifiable dans Mon profil ; email : demande au contact. Effacement : « Supprimer mon compte » (Mon profil, effet immédiat). Opposition et limitation : demande au contact |
+| Moyens | Accès et portabilité : « Télécharger mes données » (Mon profil, fichier JSON). Rectification : pseudo et email modifiables dans Mon profil (nouvel email confirmé par lien). Effacement : « Supprimer mon compte » (Mon profil, effet immédiat). Opposition et limitation : demande au contact |
 | Délai de réponse | 1 mois au plus (art. 12.3) |
 | Conservation | Les demandes reçues par email : le temps de les traiter, puis 1 an pour pouvoir prouver la réponse — **⚠ À confirmer** |
-| Dans le code | `MyDataController` (`GET /api/me/export`, `DELETE /api/me`), `frontend/src/pages/profile-data.ts`, `frontend/src/pages/privacy.ts` |
+| Dans le code | `MyDataController` (`GET /api/me/export`, `DELETE /api/me`), `EmailChangeController`, `frontend/src/pages/profile-data.ts`, `frontend/src/pages/profile-email.ts`, `frontend/src/pages/privacy.ts` |
 
 ---
 
@@ -146,7 +146,7 @@ aucune publicité, aucune revente. Aucun cookie ni traceur : rien à faire figur
 | Sous-traitant | Rôle | Données concernées | Localisation | Contrat (art. 28) |
 |---|---|---|---|---|
 | **⚠ À compléter** (hébergeur) | Héberge le site et la base de données | Toutes | **⚠ À compléter** | **⚠ À vérifier** (conditions de l'hébergeur) |
-| **⚠ À compléter** (service d'envoi d'emails) | Envoie les emails (mot de passe oublié, avertissement d'inactivité) | Email, pseudo, contenu de l'email | **⚠ À compléter** | **⚠ À vérifier** |
+| **⚠ À compléter** (service d'envoi d'emails) | Envoie les emails (mot de passe oublié, changement d'email, avertissement d'inactivité) | Email, pseudo, contenu de l'email | **⚠ À compléter** | **⚠ À vérifier** |
 
 En local, les emails ne partent pas : Mailpit (`http://localhost:8025`) les attrape. La police d'écriture est hébergée
 par le site lui-même : aucune donnée n'est envoyée à Google ou à un autre service.
@@ -205,3 +205,4 @@ Exemple : fuite de la base, accès d'une personne non autorisée.
 | Date | Modification |
 |---|---|
 | 26 novembre 2026 | Création du registre (T1 à T7), à partir de l'état du code : comptes, jeux, parties sans compte, mot de passe oublié, durées de conservation, droits des joueurs |
+| 26 novembre 2026 | Changement d'email depuis Mon profil (T1, T6, T7, sous-traitant d'emails) ; l'export des données inclut la date de dernière connexion et un éventuel changement d'email en attente |

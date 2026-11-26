@@ -9,6 +9,7 @@ import { setUnauthorizedHandler } from './api';
 import { isLoggedIn, logout } from './auth';
 import { renderHome } from './pages/home';
 import { renderLeaderboard } from './pages/leaderboard';
+import { renderConfirmEmail } from './pages/confirm-email';
 import { renderForgotPassword } from './pages/forgot-password';
 import { renderLogin } from './pages/login';
 import { renderMemoire } from './pages/memoire';
@@ -43,6 +44,8 @@ startRouter({
     '/classement': { title: 'Classement', render: renderLeaderboard },
     '/profil': { title: 'Mon profil', render: renderProfile, requiresAuth: true },
     '/confidentialite': { title: 'Confidentialité', render: renderPrivacy },
+    // Lien reçu par email : ouvert connecté ou non (par exemple sur un autre appareil)
+    '/confirmer-email': { title: 'Nouvelle adresse email', render: renderConfirmEmail },
     '/login': { title: 'Connexion', render: renderLogin, guestOnly: true },
     '/register': { title: 'Créer un compte', render: renderRegister, guestOnly: true },
     '/mot-de-passe-oublie': { title: 'Mot de passe oublié', render: renderForgotPassword, guestOnly: true },

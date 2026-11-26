@@ -64,7 +64,8 @@ final class MyDataTest extends ApiTestCase
         self::assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
 
         $data = json_decode((string) $response->getContent(), true);
-        self::assertSame(['email' => 'alice@cat.fun', 'pseudo' => 'Alice'], $data['compte']);
+        self::assertSame(['email' => 'alice@cat.fun', 'pseudo' => 'Alice', 'changement_email_en_attente' => null], array_diff_key($data['compte'], ['derniere_connexion' => true]));
+        self::assertNotEmpty($data['compte']['derniere_connexion']);
         self::assertCount(1, $data['scores']);
         self::assertSame(['jeu' => 'Pendu', 'niveau' => null, 'points' => 325], array_diff_key($data['scores'][0], ['date' => true]));
         // Les deux parties commencent dans la même seconde : leur ordre n'est pas garanti

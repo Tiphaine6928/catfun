@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\EmailChangeRequest;
 use App\Entity\GameSession;
 use App\Entity\Score;
 use App\Entity\User;
@@ -38,11 +39,15 @@ class MyDataController extends AbstractController
         $scores = $this->entityManager->getRepository(Score::class)->findBy(['player' => $user], ['date' => 'ASC', 'id' => 'ASC']);
         $sessions = $this->entityManager->getRepository(GameSession::class)->findBy(['player' => $user], ['createdAt' => 'ASC']);
 
+        $pendingEmail = $this->entityManager->getRepository(EmailChangeRequest::class)->findOneBy(['user' => $user]);
+
         $data = [
             'date_export' => (new \DateTimeImmutable())->format(\DATE_ATOM),
             'compte' => [
                 'email' => $user->getEmail(),
                 'pseudo' => $user->getPseudo(),
+                'derniere_connexion' => $user->getLastLoginAt()->format(\DATE_ATOM),
+                'changement_email_en_attente' => $pendingEmail?->getNewEmail(),
             ],
             'scores' => array_map(static fn (Score $score) => [
                 'jeu' => $score->getGame()?->getName(),

@@ -32,7 +32,7 @@ test.describe('RGPD', () => {
 
     expect(download.suggestedFilename()).toBe('catfun-mes-donnees.json');
     const data = JSON.parse(await readFile((await download.path())!, 'utf8'));
-    expect(data.compte).toEqual({ email: user.email, pseudo: user.pseudo });
+    expect(data.compte).toMatchObject({ email: user.email, pseudo: user.pseudo, changement_email_en_attente: null });
     expect(data.scores).toHaveLength(1);
     expect(data.scores[0]).toMatchObject({ jeu: 'Pendu', points: 325 });
     await expect(page.getByText('Fichier téléchargé ✓')).toBeVisible();

@@ -55,7 +55,7 @@ const TEMPLATE = `
   </main>
 `;
 
-/** Email du compte qui vient d'être créé, pour pré-remplir le formulaire de connexion. */
+/** Email du compte qui vient d'être créé (ou de changer d'adresse), pour pré-remplir le formulaire de connexion. */
 let registeredEmail: string | null = null;
 
 export function rememberRegisteredEmail(email: string): void {
@@ -89,9 +89,12 @@ export function renderLogin(container: HTMLElement, params: URLSearchParams): vo
 
   if (params.get('inscrit') === '1') {
     showAlert(alert, 'Ton inscription a bien été prise en compte ✓ Connecte-toi pour commencer à jouer.', 'info');
-    if (registeredEmail) {
-      email.value = registeredEmail;
-    }
+  }
+  if (params.get('nouvelemail') === '1') {
+    showAlert(alert, 'Ton adresse email a bien été changée ✓ Connecte-toi avec ta nouvelle adresse.', 'info');
+  }
+  if (registeredEmail) {
+    email.value = registeredEmail;
   }
   registeredEmail = null;
 

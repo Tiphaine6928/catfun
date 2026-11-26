@@ -4,6 +4,7 @@ import { fetchMyHistory, fetchMyStats, GAME_PAGES, levelLabel, type GameStats, t
 import { clearErrorOnInput, PSEUDO_MAX, PSEUDO_MIN, setFieldError, setLoading, validatePseudo } from '../ui/form';
 import { renderLayout, setTopbarPseudo } from '../ui/layout';
 import { renderMyDataSection } from './profile-data';
+import { renderEmailChange } from './profile-email';
 
 const HISTORY_SIZE = 10;
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -47,6 +48,7 @@ const TEMPLATE = `
 export function renderProfile(container: HTMLElement): void {
   const page = renderLayout(container, '/profil');
   page.innerHTML = TEMPLATE;
+  page.querySelector('section[aria-labelledby="account-title"]')!.append(renderEmailChange());
   page.append(renderMyDataSection());
 
   const form = page.querySelector<HTMLFormElement>('.profile__form')!;

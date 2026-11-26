@@ -65,6 +65,7 @@ export function renderPrivacy(container: HTMLElement): void {
             <tr><td>Date de dernière connexion</td><td>Savoir si ton compte est encore utilisé.</td><td>Comme ton compte</td></tr>
             <tr><td>Parties commencées mais jamais finies</td><td>Te laisser reprendre une partie.</td><td>30 jours</td></tr>
             <tr><td>Parties jouées sans compte</td><td>Te laisser enregistrer ton score si tu crées un compte juste après.</td><td>1 jour au plus</td></tr>
+            <tr><td>Lien de confirmation d'une nouvelle adresse email</td><td>Vérifier que ta nouvelle adresse t'appartient avant de l'utiliser.</td><td>24 heures (supprimé ensuite)</td></tr>
             <tr><td>Lien « mot de passe oublié »</td><td>Te laisser choisir un nouveau mot de passe.</td><td>1 heure (supprimé ensuite)</td></tr>
             <tr><td>Adresse IP</td><td>Bloquer les abus (trop de tentatives de connexion, d'inscription…).</td><td>1 heure au plus pour les compteurs anti-abus</td></tr>
             <tr><td>Journaux du serveur</td><td>Comprendre et corriger les pannes, repérer les attaques (ils contiennent les adresses IP et les pages demandées).</td><td>${setting(LEGAL.logsRetention)}</td></tr>
@@ -88,7 +89,7 @@ export function renderPrivacy(container: HTMLElement): void {
       <h2>Tes droits</h2>
       <ul>
         <li><strong>Voir et récupérer tes données</strong> : bouton « Télécharger mes données » dans <a href="#/profil">Mon profil</a> (fichier JSON).</li>
-        <li><strong>Les corriger</strong> : ton pseudo se change dans Mon profil ; pour ton email, écris-nous.</li>
+        <li><strong>Les corriger</strong> : ton pseudo et ton email se changent dans <a href="#/profil">Mon profil</a> (la nouvelle adresse est confirmée par un lien envoyé par email).</li>
         <li><strong>Les effacer</strong> : bouton « Supprimer mon compte » dans Mon profil. Tout est supprimé aussitôt et définitivement.</li>
         <li><strong>T'opposer</strong> à un usage de tes données ou demander qu'il soit limité : écris-nous.</li>
       </ul>

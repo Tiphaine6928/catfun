@@ -1229,3 +1229,33 @@ a.game-card:hover .game-card__cta {
   filter: brightness(0.92);
 }
 
+/* Changer d'email (profil) */
+.email-change {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.email-change summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.email-change[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+.email-change__status {
+  margin: 0.75rem 0 0;
+}
+
+.email-change__status:empty {
+  display: none;
+}
+
+/* Bouton seul dans une carte (confirmation d'email) */
+.card > .button {
+  width: 100%;
+}
+
