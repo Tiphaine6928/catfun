@@ -36,6 +36,15 @@ final class MyDataTest extends ApiTestCase
         $this->requestJson('POST', '/api/games/'.$this->pendu->getId().'/sessions', null, $player);
     }
 
+    /** @param array<string, mixed> $array */
+    private function sortedKeys(array $array): array
+    {
+        $keys = array_keys($array);
+        sort($keys);
+
+        return $keys;
+    }
+
     private function rows(string $entity): int
     {
         return $this->em->getRepository($entity)->count([]);
@@ -58,11 +67,14 @@ final class MyDataTest extends ApiTestCase
         self::assertSame(['email' => 'alice@cat.fun', 'pseudo' => 'Alice'], $data['compte']);
         self::assertCount(1, $data['scores']);
         self::assertSame(['jeu' => 'Pendu', 'niveau' => null, 'points' => 325], array_diff_key($data['scores'][0], ['date' => true]));
+        // Les deux parties commencent dans la même seconde : leur ordre n'est pas garanti
+        $games = array_column($data['parties'], null, 'statut');
         self::assertCount(2, $data['parties']);
-        self::assertSame('gagnée', $data['parties'][0]['statut']);
-        self::assertSame(325, $data['parties'][0]['points']);
-        self::assertSame('en cours', $data['parties'][1]['statut']);
-        self::assertNull($data['parties'][1]['terminee_le']);
+        self::assertSame(['en cours', 'gagnée'], $this->sortedKeys($games));
+        self::assertSame(325, $games['gagnée']['points']);
+        self::assertNotNull($games['gagnée']['terminee_le']);
+        self::assertNull($games['en cours']['points']);
+        self::assertNull($games['en cours']['terminee_le']);
 
         // Ni le mot de passe, ni le mot caché d'une partie en cours
         self::assertStringNotContainsString('password', (string) $response->getContent());
