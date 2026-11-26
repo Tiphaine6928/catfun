@@ -301,3 +301,8 @@ Les fonctionnalités sont implémentés progressivement selon une roadmap
 ### Auteur
 Projet développé par Tiphaine <br>
 Etudiante en développement web - Ada Tech School
+## Données personnelles (RGPD)
+
+- Page publique pour les joueurs : « Confidentialité » (`#/confidentialite`), à compléter dans `frontend/src/legal.ts`.
+- Registre des traitements (document interne) : [`docs/registre-des-traitements.md`](docs/registre-des-traitements.md).
+  À mettre à jour à chaque changement qui touche aux données personnelles.
