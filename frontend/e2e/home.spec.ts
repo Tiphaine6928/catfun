@@ -57,6 +57,17 @@ test.describe('Accueil', () => {
     }
   });
 
+  test('les couleurs de la charte restent, même si l’appareil est en mode sombre', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/');
+
+    const colors = await page.evaluate(() => {
+      const body = getComputedStyle(document.body);
+      return { background: body.backgroundColor, text: body.color };
+    });
+    expect(colors).toEqual({ background: 'rgb(237, 231, 246)', text: 'rgb(94, 53, 177)' }); // #ede7f6, #5e35b1
+  });
+
   test.describe('sur mobile', () => {
     test.use(MOBILE);
 

@@ -4,7 +4,9 @@ import { resolve } from 'node:path';
 /**
  * Prépare le backend avant les tests :
  *  - secrets et clés JWT (bin/init-env.sh, ne réécrit rien d'existant),
- *  - base de TEST (catfun_test) recréée par les migrations : les deux jeux, aucun joueur.
+ *  - base de TEST (catfun_test) recréée par les migrations : les deux jeux, aucun joueur,
+ *  - compteurs de tentatives remis à zéro (ils sont liés aux numéros des comptes, réutilisés
+ *    d'une base recréée à l'autre).
  * La base de développement n'est jamais touchée.
  */
 export default function globalSetup(): void {
@@ -15,4 +17,5 @@ export default function globalSetup(): void {
   run('php bin/console doctrine:database:create --env=test --if-not-exists --no-interaction');
   run('php bin/console doctrine:schema:drop --env=test --force --full-database --no-interaction');
   run('php bin/console doctrine:migrations:migrate --env=test --no-interaction');
+  run('php bin/console cache:pool:clear cache.rate_limiter --env=test --no-interaction');
 }

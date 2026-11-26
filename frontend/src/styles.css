@@ -1,8 +1,10 @@
 /* ---------- Thème : charte graphique CatFun ----------
  * Fond violet clair #EDE7F6, texte violet foncé #5E35B1, police Baloo 2.
  * Les autres couleurs en sont dérivées ; chaque texte a un contraste d'au moins 4,5:1 (WCAG AA).
+ * Un seul thème, clair, même si l'appareil est réglé en mode sombre (voir color-scheme dans index.html).
  */
 :root {
+  color-scheme: light only;
   --color-bg: #ede7f6;            /* charte : fond violet clair */
   --color-surface: #ffffff;
   --color-text: #5e35b1;          /* charte : texte violet foncé */
@@ -20,27 +22,6 @@
   --radius: 12px;
   --shadow: 0 10px 30px rgb(49 27 146 / 0.12);
   --font: 'Baloo 2', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Thème sombre : mêmes violets, adaptés à un fond foncé */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #17112a;
-    --color-surface: #221a3a;
-    --color-text: #ede7f6;
-    --color-strong: #ffffff;
-    --color-muted: #b9a9dd;
-    --color-border: #3d3160;
-    --color-primary: #b39ddb;
-    --color-primary-hover: #d1c4e9;
-    --color-on-primary: #17112a;
-    --color-focus: #ffd54f;
-    --color-error: #f2b8b5;
-    --color-error-bg: #3b1a24;
-    --color-info: #9cc6ff;
-    --color-info-bg: #16264a;
-    --shadow: 0 10px 30px rgb(0 0 0 / 0.45);
-  }
 }
 
 /* ---------- Base ---------- */
