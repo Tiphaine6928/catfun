@@ -1,8 +1,10 @@
 import { requestPasswordReset, loginErrorMessage } from '../auth';
 import { clearErrorOnInput, hideAlert, setFieldError, setLoading, showAlert, validateEmail } from '../ui/form';
+import { AUTH_BRAND } from '../ui/auth-brand';
 
 const TEMPLATE = `
   <main class="auth-page">
+    ${AUTH_BRAND}
     <section class="card" aria-labelledby="forgot-title">
       <p class="card__logo" aria-hidden="true">🙀</p>
       <h1 id="forgot-title">Mot de passe oublié</h1>

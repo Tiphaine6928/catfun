@@ -17,11 +17,12 @@ import {
   validatePassword,
   validatePseudo,
 } from '../ui/form';
+import { AUTH_BRAND } from '../ui/auth-brand';
 
 const TEMPLATE = `
   <main class="auth-page">
+    ${AUTH_BRAND}
     <section class="card" aria-labelledby="register-title">
-      <p class="card__logo" aria-hidden="true">😺</p>
       <h1 id="register-title">Créer un compte</h1>
       <p class="card__subtitle">Rejoins CatFun pour enregistrer tes scores et grimper dans les classements.</p>
 

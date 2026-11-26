@@ -3,9 +3,11 @@ import { confirmEmailChange, loginErrorMessage } from '../auth';
 import { navigate } from '../router';
 import { hideAlert, setLoading, showAlert } from '../ui/form';
 import { rememberRegisteredEmail } from './login';
+import { AUTH_BRAND } from '../ui/auth-brand';
 
 const TEMPLATE = `
   <main class="auth-page">
+    ${AUTH_BRAND}
     <section class="card" aria-labelledby="confirm-title">
       <p class="card__logo" aria-hidden="true">📬</p>
       <h1 id="confirm-title">Nouvelle adresse email</h1>

@@ -107,6 +107,23 @@ test.describe('Connexion', () => {
   });
 });
 
+test.describe('Logo CatFun', () => {
+  for (const [path, title] of [
+    ['/#/login', 'Connexion'],
+    ['/#/register', 'Créer un compte'],
+  ]) {
+    test(`affiché sur la page « ${title} », il ramène à l’accueil`, async ({ page }) => {
+      await page.goto(path);
+      const logo = page.getByRole('link', { name: 'CatFun, retour à l’accueil' });
+      await expect(logo.getByRole('img')).toBeVisible();
+
+      await logo.click();
+      await expect(page).toHaveURL(/#\/$/);
+      await expect(page.getByRole('heading', { name: 'Bienvenue sur CatFun !', level: 1 })).toBeVisible();
+    });
+  }
+});
+
 test.describe('Inscription', () => {
   test('les liens entre connexion et inscription gardent la page demandée', async ({ page }) => {
     await page.goto('/#/pendu');

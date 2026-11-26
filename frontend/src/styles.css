@@ -135,8 +135,28 @@ a.button--ghost:hover {
 .auth-page {
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 1.25rem;
   min-height: 100vh;
   padding: 1.5rem 1rem;
+}
+
+/* Logo CatFun au-dessus de la carte (connexion, inscription…), lien vers l'accueil */
+.auth-page__brand {
+  display: block;
+  border-radius: var(--radius);
+}
+
+.auth-page__brand img {
+  display: block;
+  width: auto;
+  height: 110px;
+}
+
+@media (max-width: 480px) {
+  .auth-page__brand img {
+    height: 84px;
+  }
 }
 
 .card {

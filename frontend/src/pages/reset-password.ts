@@ -11,9 +11,11 @@ import {
   showAlert,
   validatePassword,
 } from '../ui/form';
+import { AUTH_BRAND } from '../ui/auth-brand';
 
 const TEMPLATE = `
   <main class="auth-page">
+    ${AUTH_BRAND}
     <section class="card" aria-labelledby="reset-title">
       <p class="card__logo" aria-hidden="true">🔑</p>
       <h1 id="reset-title">Choisis un nouveau mot de passe</h1>

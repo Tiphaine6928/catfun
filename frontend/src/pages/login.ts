@@ -13,11 +13,12 @@ import {
   showAlert,
   validateEmail,
 } from '../ui/form';
+import { AUTH_BRAND } from '../ui/auth-brand';
 
 const TEMPLATE = `
   <main class="auth-page">
+    ${AUTH_BRAND}
     <section class="card" aria-labelledby="login-title">
-      <p class="card__logo" aria-hidden="true">🐱</p>
       <h1 id="login-title">Connexion</h1>
       <p class="card__subtitle">Content de te revoir ! Connecte-toi pour enregistrer tes scores.</p>
 
