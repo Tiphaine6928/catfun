@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { addScore, API_URL, createUser, loginWithForm, loginWithToken, winPenduViaApi } from './helpers';
+import { addScore, API_URL, createUser, loginWithForm, loginWithToken, MOBILE, winPenduViaApi } from './helpers';
 
 test.describe('RGPD', () => {
   test('la page Confidentialité est accessible partout, même sans compte', async ({ page }) => {
@@ -72,5 +72,24 @@ test.describe('RGPD', () => {
     await page.goto('/#/login');
     await loginWithForm(page, user);
     await expect(page.getByRole('alert')).toHaveText('Email ou mot de passe incorrect.');
+  });
+
+  test.describe('sur mobile', () => {
+    test.use(MOBILE);
+
+    test('le tableau des données tient dans l’écran, sans défilement sur le côté', async ({ page }) => {
+      await page.goto('/#/confidentialite');
+      const table = page.locator('.legal__table');
+      await expect(table).toBeVisible();
+
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
+      expect(await page.locator('.table-scroll').evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
+
+      // Chaque fiche garde ses intitulés (ajoutés par la feuille de style)
+      const email = table.getByRole('row', { name: /^Email/ });
+      await expect(email).toContainText('Tant que ton compte existe');
+      const labels = await email.locator('td').evaluateAll((cells) => cells.map((c) => getComputedStyle(c, '::before').content));
+      expect(labels).toEqual(['"À quoi elle sert : "', '"Combien de temps : "']);
+    });
   });
 });

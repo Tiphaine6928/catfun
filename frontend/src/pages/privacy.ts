@@ -58,20 +58,21 @@ export function renderPrivacy(container: HTMLElement): void {
             <tr><th scope="col">Donnée</th><th scope="col">À quoi elle sert</th><th scope="col">Combien de temps</th></tr>
           </thead>
           <tbody>
-            <tr><td>Email</td><td>Te connecter, t'envoyer un lien si tu oublies ton mot de passe, et te prévenir avant de supprimer un compte inactif. Il n'est jamais affiché aux autres joueurs.</td><td rowspan="4">Tant que ton compte existe, et au plus <strong>3 ans sans connexion</strong> : un email te prévient un mois avant la suppression, et il suffit de te connecter pour garder ton compte</td></tr>
-            <tr><td>Pseudo</td><td>T'identifier dans les classements (il est public).</td></tr>
-            <tr><td>Mot de passe</td><td>Te connecter. Il est chiffré de façon irréversible : personne ne peut le lire, même pas nous.</td></tr>
-            <tr><td>Scores et parties terminées</td><td>Faire fonctionner les jeux, ton profil et les classements (ton pseudo et tes meilleurs scores sont publics).</td></tr>
-            <tr><td>Date de dernière connexion</td><td>Savoir si ton compte est encore utilisé.</td><td>Comme ton compte</td></tr>
-            <tr><td>Parties commencées mais jamais finies</td><td>Te laisser reprendre une partie.</td><td>30 jours</td></tr>
-            <tr><td>Parties jouées sans compte</td><td>Te laisser enregistrer ton score si tu crées un compte juste après.</td><td>1 jour au plus</td></tr>
-            <tr><td>Lien de confirmation d'une nouvelle adresse email</td><td>Vérifier que ta nouvelle adresse t'appartient avant de l'utiliser.</td><td>24 heures (supprimé ensuite)</td></tr>
-            <tr><td>Lien « mot de passe oublié »</td><td>Te laisser choisir un nouveau mot de passe.</td><td>1 heure (supprimé ensuite)</td></tr>
-            <tr><td>Adresse IP</td><td>Bloquer les abus (trop de tentatives de connexion, d'inscription…).</td><td>1 heure au plus pour les compteurs anti-abus</td></tr>
-            <tr><td>Journaux du serveur</td><td>Comprendre et corriger les pannes, repérer les attaques (ils contiennent les adresses IP et les pages demandées).</td><td>${setting(LEGAL.logsRetention)}</td></tr>
+            <tr><th scope="row">Email</th><td data-label="À quoi elle sert">Te connecter, t'envoyer un lien si tu oublies ton mot de passe, et te prévenir avant de supprimer un compte inactif. Il n'est jamais affiché aux autres joueurs.</td><td data-label="Combien de temps">Tant que ton compte existe*</td></tr>
+            <tr><th scope="row">Pseudo</th><td data-label="À quoi elle sert">T'identifier dans les classements (il est public).</td><td data-label="Combien de temps">Tant que ton compte existe*</td></tr>
+            <tr><th scope="row">Mot de passe</th><td data-label="À quoi elle sert">Te connecter. Il est chiffré de façon irréversible : personne ne peut le lire, même pas nous.</td><td data-label="Combien de temps">Tant que ton compte existe*</td></tr>
+            <tr><th scope="row">Scores et parties terminées</th><td data-label="À quoi elle sert">Faire fonctionner les jeux, ton profil et les classements (ton pseudo et tes meilleurs scores sont publics).</td><td data-label="Combien de temps">Tant que ton compte existe*</td></tr>
+            <tr><th scope="row">Date de dernière connexion</th><td data-label="À quoi elle sert">Savoir si ton compte est encore utilisé.</td><td data-label="Combien de temps">Tant que ton compte existe*</td></tr>
+            <tr><th scope="row">Parties commencées mais jamais finies</th><td data-label="À quoi elle sert">Te laisser reprendre une partie.</td><td data-label="Combien de temps">30 jours</td></tr>
+            <tr><th scope="row">Parties jouées sans compte</th><td data-label="À quoi elle sert">Te laisser enregistrer ton score si tu crées un compte juste après.</td><td data-label="Combien de temps">1 jour au plus</td></tr>
+            <tr><th scope="row">Lien de confirmation d'une nouvelle adresse email</th><td data-label="À quoi elle sert">Vérifier que ta nouvelle adresse t'appartient avant de l'utiliser.</td><td data-label="Combien de temps">24 heures (supprimé ensuite)</td></tr>
+            <tr><th scope="row">Lien « mot de passe oublié »</th><td data-label="À quoi elle sert">Te laisser choisir un nouveau mot de passe.</td><td data-label="Combien de temps">1 heure (supprimé ensuite)</td></tr>
+            <tr><th scope="row">Adresse IP</th><td data-label="À quoi elle sert">Bloquer les abus (trop de tentatives de connexion, d'inscription…).</td><td data-label="Combien de temps">1 heure au plus pour les compteurs anti-abus</td></tr>
+            <tr><th scope="row">Journaux du serveur</th><td data-label="À quoi elle sert">Comprendre et corriger les pannes, repérer les attaques (ils contiennent les adresses IP et les pages demandées).</td><td data-label="Combien de temps">${setting(LEGAL.logsRetention)}</td></tr>
           </tbody>
         </table>
       </div>
+      <p>* Un compte sans connexion depuis <strong>3 ans</strong> est supprimé, avec tout ce qui y est lié : un email te prévient un mois avant, et il suffit de te connecter pour garder ton compte.</p>
       <p>Ces durées sont appliquées automatiquement, chaque jour.</p>
       <p>Base légale : ces données sont nécessaires pour te fournir le service que tu demandes en créant un compte (exécution du contrat). La protection contre les abus repose sur notre intérêt légitime à garder le site sûr.</p>
 

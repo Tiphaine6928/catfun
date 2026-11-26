@@ -1181,9 +1181,60 @@ a.game-card:hover .game-card__cta {
   vertical-align: top;
 }
 
-.legal__table td:first-child {
+.legal__table tbody th {
   font-weight: 600;
-  white-space: nowrap;
+}
+
+/* Sur téléphone : chaque ligne du tableau devient une petite fiche, lisible sans défilement */
+@media (max-width: 640px) {
+  .legal__table,
+  .legal__table tbody,
+  .legal__table tr,
+  .legal__table th,
+  .legal__table td {
+    display: block;
+  }
+
+  .legal__table {
+    background: transparent;
+  }
+
+  .legal__table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .legal__table tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .legal__table th,
+  .legal__table td {
+    border: 0;
+  }
+
+  .legal__table tbody th {
+    padding-bottom: 0.25rem;
+    color: var(--color-strong);
+    font-size: 1.05rem;
+  }
+
+  .legal__table td {
+    padding-top: 0.25rem;
+  }
+
+  .legal__table td::before {
+    content: attr(data-label) ' : ';
+    font-weight: 600;
+    color: var(--color-text);
+  }
 }
 
 /* ---------- Mes données (profil) ---------- */
