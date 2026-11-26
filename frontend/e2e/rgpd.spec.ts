@@ -15,9 +15,9 @@ test.describe('RGPD', () => {
 
     // Lien depuis l'inscription et la connexion
     await page.goto('/#/register');
-    await expect(page.getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '#/confidentialite');
+    await expect(page.getByRole('main').getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '#/confidentialite');
     await page.goto('/#/login');
-    await expect(page.getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '#/confidentialite');
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '#/confidentialite');
   });
 
   test('« Télécharger mes données » donne un fichier avec le compte et les scores', async ({ page, request }) => {

@@ -31,6 +31,9 @@ const GUEST_TEMPLATE = `
   <a class="button button--primary button--small" href="#/register">Créer un compte</a>
 `;
 
+/** Pages du compte (connexion, inscription, mot de passe…) : y revenir après la connexion n'a pas de sens. */
+const ACCOUNT_PAGES = ['/login', '/register', '/mot-de-passe-oublie', '/nouveau-mot-de-passe', '/confirmer-email'];
+
 /**
  * Affiche la barre du haut et renvoie l'élément <main> où placer la page.
  * Pour un visiteur non connecté, la barre propose de se connecter ou de créer un compte.
@@ -62,9 +65,17 @@ export function renderLayout(container: HTMLElement, current: string): HTMLEleme
   const user = container.querySelector<HTMLDivElement>('.topbar__user')!;
   if (!isLoggedIn()) {
     user.innerHTML = GUEST_TEMPLATE;
-    // Après connexion ou inscription, on revient sur cette page
+    // Page à retrouver après la connexion : celle-ci, ou, sur une page du compte, celle qu'elle retient déjà
+    const redirect = ACCOUNT_PAGES.includes(current)
+      ? new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('redirect')
+      : current;
     for (const link of user.querySelectorAll<HTMLAnchorElement>('a')) {
-      link.setAttribute('href', `${link.getAttribute('href')}?redirect=${encodeURIComponent(current)}`);
+      const target = link.getAttribute('href')!.slice(1); // '/login' ou '/register'
+      if (target === current) {
+        link.remove(); // pas de bouton « Se connecter » sur la page de connexion elle-même
+      } else if (redirect) {
+        link.setAttribute('href', `#${target}?redirect=${encodeURIComponent(redirect)}`);
+      }
     }
 
     return container.querySelector<HTMLElement>('.page')!;

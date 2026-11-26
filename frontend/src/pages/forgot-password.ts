@@ -1,9 +1,10 @@
 import { requestPasswordReset, loginErrorMessage } from '../auth';
 import { clearErrorOnInput, hideAlert, setFieldError, setLoading, showAlert, validateEmail } from '../ui/form';
 import { AUTH_BRAND } from '../ui/auth-brand';
+import { renderLayout } from '../ui/layout';
 
 const TEMPLATE = `
-  <main class="auth-page">
+  <div class="auth-page">
     ${AUTH_BRAND}
     <section class="card" aria-labelledby="forgot-title">
       <p class="card__logo" aria-hidden="true">🙀</p>
@@ -28,7 +29,7 @@ const TEMPLATE = `
         <a class="login-link" href="#/login">Retour à la connexion</a>
       </p>
     </section>
-  </main>
+  </div>
 `;
 
 /** Email déjà saisi sur la page de connexion, pour pré-remplir le formulaire. */
@@ -39,7 +40,8 @@ export function rememberTypedEmail(email: string): void {
 }
 
 export function renderForgotPassword(container: HTMLElement): void {
-  container.innerHTML = TEMPLATE;
+  // Barre du haut et pied de page communs à tout le site, la carte au milieu
+  renderLayout(container, '/mot-de-passe-oublie').innerHTML = TEMPLATE;
 
   const form = container.querySelector<HTMLFormElement>('form')!;
   const email = form.querySelector<HTMLInputElement>('#email')!;

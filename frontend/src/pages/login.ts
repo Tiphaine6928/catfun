@@ -14,9 +14,10 @@ import {
   validateEmail,
 } from '../ui/form';
 import { AUTH_BRAND } from '../ui/auth-brand';
+import { renderLayout } from '../ui/layout';
 
 const TEMPLATE = `
-  <main class="auth-page">
+  <div class="auth-page">
     ${AUTH_BRAND}
     <section class="card" aria-labelledby="login-title">
       <h1 id="login-title">Connexion</h1>
@@ -51,9 +52,8 @@ const TEMPLATE = `
       <p class="card__footer">
         Pas encore de compte ? <a class="register-link" href="#/register">Créer un compte</a>
       </p>
-      <p class="card__legal"><a href="#/confidentialite">Confidentialité</a></p>
     </section>
-  </main>
+  </div>
 `;
 
 /** Email du compte qui vient d'être créé (ou de changer d'adresse), pour pré-remplir le formulaire de connexion. */
@@ -64,7 +64,8 @@ export function rememberRegisteredEmail(email: string): void {
 }
 
 export function renderLogin(container: HTMLElement, params: URLSearchParams): void {
-  container.innerHTML = TEMPLATE;
+  // Barre du haut et pied de page communs à tout le site, la carte au milieu
+  renderLayout(container, '/login').innerHTML = TEMPLATE;
 
   const form = container.querySelector<HTMLFormElement>('form')!;
   const email = form.querySelector<HTMLInputElement>('#email')!;

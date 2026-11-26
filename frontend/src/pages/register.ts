@@ -18,9 +18,10 @@ import {
   validatePseudo,
 } from '../ui/form';
 import { AUTH_BRAND } from '../ui/auth-brand';
+import { renderLayout } from '../ui/layout';
 
 const TEMPLATE = `
-  <main class="auth-page">
+  <div class="auth-page">
     ${AUTH_BRAND}
     <section class="card" aria-labelledby="register-title">
       <h1 id="register-title">Créer un compte</h1>
@@ -70,11 +71,12 @@ const TEMPLATE = `
         Déjà un compte ? <a class="login-link" href="#/login">Se connecter</a>
       </p>
     </section>
-  </main>
+  </div>
 `;
 
 export function renderRegister(container: HTMLElement, params: URLSearchParams): void {
-  container.innerHTML = TEMPLATE;
+  // Barre du haut et pied de page communs à tout le site, la carte au milieu
+  renderLayout(container, '/register').innerHTML = TEMPLATE;
 
   const form = container.querySelector<HTMLFormElement>('form')!;
   const email = form.querySelector<HTMLInputElement>('#email')!;

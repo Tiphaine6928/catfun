@@ -12,9 +12,10 @@ import {
   validatePassword,
 } from '../ui/form';
 import { AUTH_BRAND } from '../ui/auth-brand';
+import { renderLayout } from '../ui/layout';
 
 const TEMPLATE = `
-  <main class="auth-page">
+  <div class="auth-page">
     ${AUTH_BRAND}
     <section class="card" aria-labelledby="reset-title">
       <p class="card__logo" aria-hidden="true">🔑</p>
@@ -44,14 +45,15 @@ const TEMPLATE = `
         <a class="forgot-link" href="#/mot-de-passe-oublie">Demander un nouveau lien</a>
       </p>
     </section>
-  </main>
+  </div>
 `;
 
 const EXPIRED = 'Ce lien n’est plus valable (il a expiré ou a déjà servi). Demande un nouveau lien ci-dessous.';
 
 /** Page ouverte depuis le lien de l'email : #/nouveau-mot-de-passe?token=… */
 export function renderResetPassword(container: HTMLElement, params: URLSearchParams): void {
-  container.innerHTML = TEMPLATE;
+  // Barre du haut et pied de page communs à tout le site, la carte au milieu
+  renderLayout(container, '/nouveau-mot-de-passe').innerHTML = TEMPLATE;
 
   const form = container.querySelector<HTMLFormElement>('form')!;
   const password = form.querySelector<HTMLInputElement>('#password')!;

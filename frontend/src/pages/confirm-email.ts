@@ -4,9 +4,10 @@ import { navigate } from '../router';
 import { hideAlert, setLoading, showAlert } from '../ui/form';
 import { rememberRegisteredEmail } from './login';
 import { AUTH_BRAND } from '../ui/auth-brand';
+import { renderLayout } from '../ui/layout';
 
 const TEMPLATE = `
-  <main class="auth-page">
+  <div class="auth-page">
     ${AUTH_BRAND}
     <section class="card" aria-labelledby="confirm-title">
       <p class="card__logo" aria-hidden="true">📬</p>
@@ -21,7 +22,7 @@ const TEMPLATE = `
 
       <p class="card__footer"><a href="#/profil">Retour à Mon profil</a></p>
     </section>
-  </main>
+  </div>
 `;
 
 /**
@@ -29,7 +30,8 @@ const TEMPLATE = `
  * Un bouton confirme (rien ne change à la simple ouverture du lien, par exemple par un antivirus).
  */
 export function renderConfirmEmail(container: HTMLElement, params: URLSearchParams): void {
-  container.innerHTML = TEMPLATE;
+  // Barre du haut et pied de page communs à tout le site, la carte au milieu
+  renderLayout(container, '/confirmer-email').innerHTML = TEMPLATE;
   const alert = container.querySelector<HTMLDivElement>('.alert')!;
   const button = container.querySelector<HTMLButtonElement>('.confirm')!;
 

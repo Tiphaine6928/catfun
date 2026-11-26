@@ -124,14 +124,44 @@ test.describe('Logo CatFun', () => {
   }
 });
 
+test.describe('Menu de navigation', () => {
+  for (const path of ['/#/login', '/#/register', '/#/mot-de-passe-oublie', '/#/nouveau-mot-de-passe', '/#/confirmer-email']) {
+    test(`présent sur ${path}`, async ({ page }) => {
+      await page.goto(path);
+      const menu = page.getByRole('navigation', { name: 'Navigation principale' });
+      for (const name of ['Accueil', 'Pendu', 'Mémoire', 'Classement']) {
+        await expect(menu.getByRole('link', { name, exact: true })).toBeVisible();
+      }
+      await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Confidentialité' })).toBeVisible();
+    });
+  }
+
+  test('pas de bouton vers la page où l’on est déjà', async ({ page }) => {
+    await page.goto('/#/login');
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Se connecter' })).toHaveCount(0);
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Créer un compte' })).toBeVisible();
+
+    await page.goto('/#/register');
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Créer un compte' })).toHaveCount(0);
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Se connecter' })).toBeVisible();
+  });
+});
+
 test.describe('Inscription', () => {
   test('les liens entre connexion et inscription gardent la page demandée', async ({ page }) => {
     await page.goto('/#/pendu');
-    await page.getByRole('link', { name: 'Créer un compte' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Créer un compte' }).click();
     await expect(page).toHaveURL(/#\/register\?redirect=%2Fpendu$/);
     await expect(page).toHaveTitle('Créer un compte · CatFun');
 
-    await page.getByRole('link', { name: 'Se connecter' }).click();
+    // Depuis la carte…
+    await page.getByRole('main').getByRole('link', { name: 'Se connecter' }).click();
+    await expect(page).toHaveURL(/#\/login\?redirect=%2Fpendu$/);
+
+    // … ou depuis la barre du haut : la page demandée est gardée aussi
+    await page.getByRole('banner').getByRole('link', { name: 'Créer un compte' }).click();
+    await expect(page).toHaveURL(/#\/register\?redirect=%2Fpendu$/);
+    await page.getByRole('banner').getByRole('link', { name: 'Se connecter' }).click();
     await expect(page).toHaveURL(/#\/login\?redirect=%2Fpendu$/);
   });
 

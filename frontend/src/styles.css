@@ -135,10 +135,7 @@ a.button--ghost:hover {
 .auth-page {
   display: grid;
   place-items: center;
-  align-content: center;
   gap: 1.25rem;
-  min-height: 100vh;
-  padding: 1.5rem 1rem;
 }
 
 /* Logo CatFun au-dessus de la carte (connexion, inscription…), lien vers l'accueil */
