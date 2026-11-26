@@ -87,10 +87,10 @@ final class RateLimitTest extends ApiTestCase
         self::assertSame(200, $this->login('alice@cat.fun', self::PASSWORD, '203.0.113.7'));
     }
 
-    public function testOnlyFailedAttemptsCount(): void
+    public function testOnlyFailedAttemptsCountAndASuccessfulLoginResetsThem(): void
     {
-        // Comportement de Symfony : une connexion réussie ne consomme pas de tentative,
-        // mais n'efface pas les échecs précédents (ils expirent avec la fenêtre de 15 minutes).
+        // Comportement de Symfony (6.4.51 et suivantes) : une connexion réussie ne consomme pas
+        // de tentative et remet à zéro les échecs de ce compte (pas ceux de l'adresse IP).
         $this->createUserWithPassword('alice@cat.fun');
         for ($i = 1; $i <= 4; ++$i) {
             self::assertSame(401, $this->login('alice@cat.fun', 'mauvais'));
@@ -99,8 +99,24 @@ final class RateLimitTest extends ApiTestCase
             self::assertSame(200, $this->login('alice@cat.fun', self::PASSWORD), "connexion réussie $i");
         }
 
-        self::assertSame(401, $this->login('alice@cat.fun', 'mauvais'), '5e échec');
+        // Compteur remis à zéro : de nouveau 5 essais avant le blocage
+        for ($i = 1; $i <= 5; ++$i) {
+            self::assertSame(401, $this->login('alice@cat.fun', 'mauvais'), "échec $i après la connexion réussie");
+        }
         self::assertSame(429, $this->login('alice@cat.fun', 'mauvais'), '6e échec');
+    }
+
+    public function testASuccessfulLoginDoesNotResetTheLimitOfTheIpAddress(): void
+    {
+        // Un robot ne peut pas se servir de son propre compte pour effacer la limite par adresse IP
+        $this->createUserWithPassword('bot@cat.fun');
+        for ($i = 1; $i <= 24; ++$i) {
+            self::assertSame(401, $this->login("inconnu$i@cat.fun", 'mauvais', '198.51.100.20'));
+        }
+        self::assertSame(200, $this->login('bot@cat.fun', self::PASSWORD, '198.51.100.20'));
+
+        self::assertSame(401, $this->login('inconnu25@cat.fun', 'mauvais', '198.51.100.20'), '25e échec');
+        self::assertSame(429, $this->login('inconnu26@cat.fun', 'mauvais', '198.51.100.20'), '26e échec');
     }
 
     public function testManyEmailsFromTheSameAddressAreBlockedToo(): void

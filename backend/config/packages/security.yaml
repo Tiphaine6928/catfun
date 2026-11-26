@@ -26,7 +26,8 @@ security:
                 failure_handler: App\Security\LoginFailureHandler
             # Limite les tentatives de connexion : par défaut 5 par quart d'heure pour un même email
             # depuis une même adresse IP, et 25 par quart d'heure par adresse IP (config/packages/rate_limiter.yaml).
-            # Seuls les échecs comptent ; ils expirent au bout du quart d'heure.
+            # Seuls les échecs comptent ; ils expirent au bout du quart d'heure, et une connexion réussie
+            # remet à zéro ceux du compte (pas ceux de l'adresse IP).
             login_throttling:
                 limiter: app.login_rate_limiter
         

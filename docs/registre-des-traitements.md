@@ -164,6 +164,7 @@ par le site lui-même : aucune donnée n'est envoyée à Google ou à un autre s
 - Parties et scores calculés côté serveur ; chaque joueur n'accède qu'à ses propres données.
 - Suppression automatique des données arrivées au bout de leur durée de conservation (`app:data:purge`, chaque jour).
 - Tests automatiques (PHPUnit, Playwright) sur l'export, la suppression, les durées de conservation et les limites, lancés par la CI à chaque modification.
+- Dépendances sans faille connue au 26 novembre 2026 (`composer audit` et `npm audit` : 0 faille). À revérifier régulièrement.
 
 **⚠ À faire avant la mise en ligne**
 
@@ -171,7 +172,6 @@ par le site lui-même : aucune donnée n'est envoyée à Google ou à un autre s
 - Remplacer les mots de passe par défaut de la base de données (`docker-compose.yml` : `admin` / `root`) et ne pas exposer MySQL sur Internet.
 - Passer Symfony en `APP_ENV=prod` (pas de messages d'erreur détaillés, journaux réduits).
 - Sauvegardes de la base (fréquence, durée de conservation, lieu) : **⚠ À définir**.
-- Mettre à jour les dépendances qui ont des failles connues (`composer audit`).
 - Limiter l'accès au serveur et à la base aux personnes qui en ont besoin.
 
 ---
@@ -206,3 +206,4 @@ Exemple : fuite de la base, accès d'une personne non autorisée.
 |---|---|
 | 26 novembre 2026 | Création du registre (T1 à T7), à partir de l'état du code : comptes, jeux, parties sans compte, mot de passe oublié, durées de conservation, droits des joueurs |
 | 26 novembre 2026 | Changement d'email depuis Mon profil (T1, T6, T7, sous-traitant d'emails) ; l'export des données inclut la date de dernière connexion et un éventuel changement d'email en attente |
+| 26 novembre 2026 | Mise à jour des dépendances du backend : 62 failles connues corrigées (Symfony 6.4.51, Twig 3.31, PHPUnit 9.6.39) |
